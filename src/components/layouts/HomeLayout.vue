@@ -52,10 +52,11 @@ onUnmounted(() => {
 <style scoped>
 .home-layout {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   height: 100vh;
   text-align: center;
+  padding-top: 120px;
 }
 
 .digital-clock {
