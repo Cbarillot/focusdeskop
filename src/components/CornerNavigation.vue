@@ -66,7 +66,7 @@
         @mouseleave="handleMouseLeave"
       >
         <!-- Album Cover avec YouTube Player -->
-        <div class="album-sleeve">
+        <div class="album-sleeve" @dblclick="toggleMusicSelector">
           <div class="album-cover">
             <!-- YouTube Player Container -->
             <div
