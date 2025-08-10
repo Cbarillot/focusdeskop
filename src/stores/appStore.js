@@ -14,6 +14,14 @@ export const useAppStore = defineStore('app', () => {
   const shortBreakTime = ref(5 * 60)
   const longBreakTime = ref(15 * 60)
   
+  // Auto-start settings
+  const autoStartBreaks = ref(false)
+  const autoStartPomodoros = ref(false)
+  const longBreakInterval = ref(4) // After every 4 pomodoros
+  
+  // Timer display settings
+  const timerDisplayMode = ref('focus') // focus, ambiance, home
+  
   // UI state
   const sidebarOpen = ref(false)
   const activeTab = ref('themes') // themes, clock, timer, stats, music, notepad, sounds, quotes, background, todo
@@ -364,13 +372,32 @@ const themes = ref({
       // Auto-switch to next mode (simplified logic)
       if (timerMode.value === 'pomodoro') {
         cycle.value++
-        if (cycle.value % 4 === 0) {
-          switchMode('longBreak')
+        const nextMode = (cycle.value % longBreakInterval.value === 0) ? 'longBreak' : 'shortBreak'
+        
+        if (autoStartBreaks.value) {
+          switchMode(nextMode)
+          // Auto start the break timer
+          setTimeout(() => {
+            if (!isRunning.value) {
+              toggleTimer()
+            }
+          }, 100)
         } else {
-          switchMode('shortBreak')
+          switchMode(nextMode)
         }
       } else {
-        switchMode('pomodoro')
+        // Break is over, switch to pomodoro
+        if (autoStartPomodoros.value) {
+          switchMode('pomodoro')
+          // Auto start the pomodoro timer
+          setTimeout(() => {
+            if (!isRunning.value) {
+              toggleTimer()
+            }
+          }, 100)
+        } else {
+          switchMode('pomodoro')
+        }
       }
     }
   }
@@ -663,6 +690,60 @@ const themes = ref({
     }
   }
   
+  // Timer settings functions
+  function updatePomodoroTime(minutes) {
+    const newTime = parseInt(minutes) * 60
+    if (newTime > 0 && newTime <= 3600) { // Max 60 minutes
+      pomodoroTime.value = newTime
+      if (timerMode.value === 'pomodoro') {
+        timeRemaining.value = newTime
+      }
+    }
+  }
+  
+  function updateShortBreakTime(minutes) {
+    const newTime = parseInt(minutes) * 60
+    if (newTime > 0 && newTime <= 1800) { // Max 30 minutes
+      shortBreakTime.value = newTime
+      if (timerMode.value === 'shortBreak') {
+        timeRemaining.value = newTime
+      }
+    }
+  }
+  
+  function updateLongBreakTime(minutes) {
+    const newTime = parseInt(minutes) * 60
+    if (newTime > 0 && newTime <= 3600) { // Max 60 minutes
+      longBreakTime.value = newTime
+      if (timerMode.value === 'longBreak') {
+        timeRemaining.value = newTime
+      }
+    }
+  }
+  
+  function setTimerDisplayMode(mode) {
+    if (['focus', 'ambiance', 'home'].includes(mode)) {
+      timerDisplayMode.value = mode
+      // Also update the mood to match the display mode
+      mood.value = mode
+    }
+  }
+  
+  function toggleAutoStartBreaks() {
+    autoStartBreaks.value = !autoStartBreaks.value
+  }
+  
+  function toggleAutoStartPomodoros() {
+    autoStartPomodoros.value = !autoStartPomodoros.value
+  }
+  
+  function setLongBreakInterval(interval) {
+    const newInterval = parseInt(interval)
+    if (newInterval >= 2 && newInterval <= 10) {
+      longBreakInterval.value = newInterval
+    }
+  }
+  
   return {
     // State
     timerMode,
@@ -672,6 +753,10 @@ const themes = ref({
     pomodoroTime,
     shortBreakTime,
     longBreakTime,
+    autoStartBreaks,
+    autoStartPomodoros,
+    longBreakInterval,
+    timerDisplayMode,
     sidebarOpen,
     activeTab,
     isFullscreen,
@@ -731,6 +816,13 @@ const themes = ref({
     stopMusic,
     toggleMusicPlayback,
     toggleFullscreen,
+    updatePomodoroTime,
+    updateShortBreakTime,
+    updateLongBreakTime,
+    setTimerDisplayMode,
+    toggleAutoStartBreaks,
+    toggleAutoStartPomodoros,
+    setLongBreakInterval,
     setMood: (newMood) => { mood.value = newMood }
   }
 })
