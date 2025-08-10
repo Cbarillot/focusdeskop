@@ -503,7 +503,7 @@ onUnmounted(() => {
 
 /* Album Sleeve (Cover) */
 .album-sleeve {
-  width: 100px;
+  width: 111px;
   height: 100px;
   background: linear-gradient(145deg, #f8f8f8, #e0e0e0);
   border-radius: 8px;
