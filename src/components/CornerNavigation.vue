@@ -292,9 +292,25 @@ function loadCustomVideo() {
 
 function loadPresetVideo(videoId) {
   currentVideoId.value = videoId
+
+  // Sauvegarder dans le store pour persistence
+  const preset = musicPresets.value.find(p => p.videoId === videoId)
+  if (preset) {
+    store.currentTrack = preset.title
+    store.musicUrl = `https://youtube.com/watch?v=${videoId}`
+  }
+
+  // Charger directement dans le player YouTube existant
   if (youtubePlayer.value && youtubePlayer.value.loadVideoById) {
     youtubePlayer.value.loadVideoById(videoId)
+    // Démarrer automatiquement la lecture
+    setTimeout(() => {
+      if (youtubePlayer.value && youtubePlayer.value.playVideo) {
+        youtubePlayer.value.playVideo()
+      }
+    }, 500)
   }
+
   musicSelectorVisible.value = false
 }
 
