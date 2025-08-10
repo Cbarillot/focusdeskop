@@ -608,11 +608,13 @@ onUnmounted(() => {
   }
 
   .music-selector-panel {
-    width: 280px;
+    width: 320px;
+    transform: translate(-50%, -50%) scale(0.9);
   }
 
   .music-selector-panel.visible {
-    height: 350px;
+    height: 380px;
+    transform: translate(-50%, -50%) scale(1);
   }
 
   .presets-grid {
