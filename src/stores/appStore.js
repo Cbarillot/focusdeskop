@@ -18,7 +18,7 @@ export const useAppStore = defineStore('app', () => {
   const sidebarOpen = ref(false)
   const activeTab = ref('themes') // themes, clock, timer, stats, music, notepad, sounds, quotes, background, todo
   const isFullscreen = ref(false) // Fullscreen mode state
-  const timerDisplayMode = ref('focus') // focus, ambiance, home
+  const mood = ref('focus') // home, ambience, focus - controls layout mode
 
 // Theme & styling
 const currentTheme = ref('toto-forest') // home, ambiance, focus, toto-forest, etc.
@@ -675,7 +675,7 @@ const themes = ref({
     sidebarOpen,
     activeTab,
     isFullscreen,
-    timerDisplayMode,
+    mood,
     currentTheme,
     themes,
     backgroundType,
@@ -731,6 +731,6 @@ const themes = ref({
     stopMusic,
     toggleMusicPlayback,
     toggleFullscreen,
-    setTimerDisplayMode: (mode) => { timerDisplayMode.value = mode }
+    setMood: (newMood) => { mood.value = newMood }
   }
 })
