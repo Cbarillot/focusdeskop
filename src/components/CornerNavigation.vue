@@ -174,10 +174,39 @@ import { useAppStore } from '../stores/appStore'
 
 const store = useAppStore()
 const musicPlayerVisible = ref(false)
+const musicSelectorVisible = ref(false)
 const vinylSlideOut = ref(false)
 const playerId = ref(Math.random().toString(36).substr(2, 9))
 const youtubePlayer = ref(null)
 const currentVideoId = ref('jfKfPfyJRdk') // Default video
+const customYouTubeUrl = ref('')
+
+const musicPresets = ref([
+  {
+    id: 1,
+    title: 'Lofi Hip Hop',
+    description: 'Beats to relax/study',
+    videoId: 'jfKfPfyJRdk'
+  },
+  {
+    id: 2,
+    title: 'Jazz Café',
+    description: 'Smooth jazz ambiance',
+    videoId: '4xDzrJKXOOY'
+  },
+  {
+    id: 3,
+    title: 'Nature Sounds',
+    description: 'Rain & forest sounds',
+    videoId: 'nDq6TstdEi8'
+  },
+  {
+    id: 4,
+    title: 'Piano Study',
+    description: 'Classical piano focus',
+    videoId: 'DWcJFNfaw9c'
+  }
+])
 
 // Watch for changes in store music URL to extract YouTube video ID
 const extractedVideoId = computed(() => {
