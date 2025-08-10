@@ -686,6 +686,36 @@ onUnmounted(() => {
   position: relative;
   z-index: 10;
   flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.album-sleeve:hover {
+  transform: scale(1.02);
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.15),
+    inset 0 0 12px rgba(0, 0, 0, 0.08);
+}
+
+.album-sleeve::after {
+  content: '⚙️';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.album-sleeve:hover::after {
+  opacity: 1;
 }
 
 .album-cover {
