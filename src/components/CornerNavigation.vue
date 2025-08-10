@@ -580,19 +580,19 @@ onUnmounted(() => {
 /* Vinyl Record */
 .vinyl-wrapper {
   position: absolute;
-  left: 60px;
-  width: 100px;
-  height: 100px;
+  left: 80px;
+  width: 120px;
+  height: 120px;
   transition: transform 0.4s ease-out;
   z-index: 5;
 }
 
 .vinyl-wrapper.slide-out {
-  transform: translateX(50px);
+  transform: translateX(30px);
 }
 
 .vinyl-wrapper.is-playing {
-  transform: translateX(50px);
+  transform: translateX(30px);
 }
 
 .vinyl-record {
