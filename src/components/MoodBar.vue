@@ -24,8 +24,14 @@
         :aria-label="'Mode Ambiance'"
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- Lotus meditation icon -->
-          <path d="M12 2c-1.5 1-3 2.5-3 5s1 4 2.5 5c-1 .5-2 1.5-2 3 0 2 1.5 3.5 3 3.5.8 0 1.5-.3 2-.8.5.5 1.2.8 2 .8 1.5 0 3-1.5 3-3.5 0-1.5-1-2.5-2-3C18 11 19 9 19 7s-1.5-4-3-5c-.5.5-1 1-1.5 1.5-.5-.5-1-.5-1.5-1 0-.5-.5-1-1-.5z" fill="currentColor"/>
+          <!-- Lotus icon with three leaves -->
+          <!-- Top petal -->
+          <path d="M12 3c-2 0-3.5 1.5-3.5 3.5s1.2 3.2 3 4c.2-.3.3-.6.5-1 .2.4.3.7.5 1 1.8-.8 3-2 3-4S14 3 12 3z" fill="currentColor"/>
+          <!-- Left petal -->
+          <path d="M6 12c0-2 1.5-3.5 3.5-3.5s3.2 1.2 4 3c-.3.2-.6.3-1 .5.4.2.7.3 1 .5-.8 1.8-2 3-4 3S6 14 6 12z" fill="currentColor"/>
+          <!-- Right petal -->
+          <path d="M18 12c0-2-1.5-3.5-3.5-3.5s-3.2 1.2-4 3c.3.2.6.3 1 .5-.4.2-.7.3-1 .5.8 1.8 2 3 4 3s3.5-1.5 3.5-3.5z" fill="currentColor"/>
+          <!-- Center -->
           <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
         </svg>
       </button>
