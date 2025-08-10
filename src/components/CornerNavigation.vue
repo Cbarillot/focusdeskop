@@ -47,7 +47,8 @@
       <button
         class="corner-button"
         :class="{ active: musicPlayerVisible }"
-        @click="toggleMusicPlayer"
+        @click="openMusic"
+        @dblclick="openMusicSettings"
         :title="'Musique'"
         :aria-label="'Musique'"
       >
