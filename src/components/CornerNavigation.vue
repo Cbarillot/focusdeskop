@@ -260,6 +260,14 @@ function toggleMusicSelector() {
   musicSelectorVisible.value = !musicSelectorVisible.value
 }
 
+function openMusicSettings() {
+  // Ouvre les paramètres de musique dans la sidebar
+  store.setActiveTab('music')
+  if (!store.sidebarOpen) {
+    store.toggleSidebar()
+  }
+}
+
 function loadCustomVideo() {
   if (customYouTubeUrl.value) {
     const videoId = extractYouTubeVideoId(customYouTubeUrl.value)
