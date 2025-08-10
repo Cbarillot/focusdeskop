@@ -533,28 +533,40 @@ onUnmounted(() => {
   }
 
   .vinyl-player {
-    width: 180px;
+    width: 200px;
   }
 
   .vinyl-player.visible {
-    height: 100px;
+    height: 110px;
   }
 
   .album-sleeve {
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 90px;
     padding: 6px;
   }
 
   .vinyl-wrapper {
-    left: 50px;
-    width: 80px;
-    height: 80px;
+    left: 60px;
+    width: 90px;
+    height: 90px;
   }
 
   .vinyl-wrapper.slide-out,
   .vinyl-wrapper.is-playing {
-    transform: translateX(40px);
+    transform: translateX(20px);
+  }
+
+  .music-selector-panel {
+    width: 280px;
+  }
+
+  .music-selector-panel.visible {
+    height: 350px;
+  }
+
+  .presets-grid {
+    grid-template-columns: 1fr;
   }
 }
 
