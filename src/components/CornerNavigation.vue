@@ -363,8 +363,28 @@ onUnmounted(() => {
     height: 44px;
   }
 
-  .music-player-panel {
-    width: 220px;
+  .vinyl-player {
+    width: 200px;
+  }
+
+  .album-sleeve {
+    width: 90px;
+    height: 90px;
+    padding: 6px;
+  }
+
+  .vinyl-wrapper {
+    left: 55px;
+    width: 90px;
+    height: 90px;
+  }
+
+  .vinyl-wrapper.slide-out {
+    transform: translateX(45px);
+  }
+
+  .vinyl-wrapper.is-playing {
+    transform: translateX(45px);
   }
 
   /* Stack buttons vertically on mobile for better touch targets */
