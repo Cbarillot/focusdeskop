@@ -251,6 +251,10 @@ function toggleMusicPlayer() {
     right: 15px;
   }
 
+  .corner-middle-left {
+    left: 15px;
+  }
+
   .corner-bottom-left {
     bottom: 15px;
     left: 15px;
@@ -264,6 +268,10 @@ function toggleMusicPlayer() {
   .corner-button {
     width: 44px;
     height: 44px;
+  }
+
+  .music-player-panel {
+    width: 220px;
   }
 
   /* Stack buttons vertically on mobile for better touch targets */
