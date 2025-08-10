@@ -15,7 +15,7 @@
         </svg>
       </button>
 
-      <!-- Ambience Mood Button -->
+      <!-- Ambience Mood Button (Lotus/Zen icon) -->
       <button 
         class="mood-button"
         :class="{ active: store.mood === 'ambience' }"
@@ -24,13 +24,13 @@
         :aria-label="'Mode Ambiance'"
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/>
-          <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1" fill="none"/>
-          <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+          <!-- Lotus/meditation icon -->
+          <path d="M12 2c-1.5 0-3 1-3 2.5 0 .8.3 1.5.8 2C8.5 7.5 7 9 7 11c0 1.1.4 2.1 1 2.8-.6.7-1 1.7-1 2.7 0 2 1.5 3.5 3 3.5.8 0 1.5-.3 2-.8.5.5 1.2.8 2 .8 1.5 0 3-1.5 3-3.5 0-1-.4-2-1-2.7.6-.7 1-1.7 1-2.8 0-2-1.5-3.5-3-3.5-.3 0-.6.1-.8.2C15.7 6 15 5.3 15 4.5 15 3 13.5 2 12 2z" fill="currentColor" opacity="0.8"/>
+          <circle cx="12" cy="12" r="1" fill="currentColor"/>
         </svg>
       </button>
 
-      <!-- Focus Mood Button -->
+      <!-- Focus Mood Button (Timer icon) -->
       <button 
         class="mood-button"
         :class="{ active: store.mood === 'focus' }"
