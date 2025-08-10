@@ -250,6 +250,34 @@ function toggleMusicPlayer() {
   }
 }
 
+function toggleMusicSelector() {
+  musicSelectorVisible.value = !musicSelectorVisible.value
+}
+
+function loadCustomVideo() {
+  if (customYouTubeUrl.value) {
+    const videoId = extractYouTubeVideoId(customYouTubeUrl.value)
+    if (videoId) {
+      currentVideoId.value = videoId
+      if (youtubePlayer.value && youtubePlayer.value.loadVideoById) {
+        youtubePlayer.value.loadVideoById(videoId)
+      }
+      customYouTubeUrl.value = ''
+      musicSelectorVisible.value = false
+    } else {
+      alert('URL YouTube invalide')
+    }
+  }
+}
+
+function loadPresetVideo(videoId) {
+  currentVideoId.value = videoId
+  if (youtubePlayer.value && youtubePlayer.value.loadVideoById) {
+    youtubePlayer.value.loadVideoById(videoId)
+  }
+  musicSelectorVisible.value = false
+}
+
 function handleMouseEnter() {
   if (!store.musicPlaying) {
     vinylSlideOut.value = true
