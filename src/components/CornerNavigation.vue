@@ -64,7 +64,6 @@
         :class="{ visible: musicPlayerVisible, 'is-playing': store.musicPlaying }"
         @mouseenter="handleMouseEnter"
         @mouseleave="handleMouseLeave"
-        @dblclick="toggleMusicSelector"
       >
         <!-- Album Cover avec YouTube Player -->
         <div class="album-sleeve">
