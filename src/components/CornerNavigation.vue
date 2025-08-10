@@ -188,6 +188,14 @@ function toggleMusicPlayer() {
   flex-direction: row;
 }
 
+.corner-middle-left {
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 .corner-bottom-left {
   bottom: 20px;
   left: 20px;
