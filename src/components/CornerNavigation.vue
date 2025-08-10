@@ -24,10 +24,10 @@
       </button>
     </div>
 
-    <!-- Bottom-Left Corner: ToDo and Music -->
-    <div class="corner-container corner-bottom-left">
+    <!-- Middle-Left: ToDo Button -->
+    <div class="corner-container corner-middle-left">
       <!-- Todo Button -->
-      <button 
+      <button
         class="corner-button"
         :class="{ active: store.activeTab === 'todo' && store.sidebarOpen }"
         @click="openTodo"
@@ -39,12 +39,15 @@
           <path d="M8 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
+    </div>
 
+    <!-- Bottom-Left Corner: Music -->
+    <div class="corner-container corner-bottom-left">
       <!-- Music Button -->
-      <button 
+      <button
         class="corner-button"
-        :class="{ active: store.activeTab === 'music' && store.sidebarOpen }"
-        @click="openMusic"
+        :class="{ active: musicPlayerVisible }"
+        @click="toggleMusicPlayer"
         :title="'Musique'"
         :aria-label="'Musique'"
       >
@@ -54,6 +57,47 @@
           <circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="2"/>
         </svg>
       </button>
+
+      <!-- Integrated Music Player -->
+      <div
+        class="music-player-panel"
+        :class="{ visible: musicPlayerVisible }"
+      >
+        <div class="player-content">
+          <div v-if="store.currentTrack" class="current-track">
+            <div class="track-name">{{ store.currentTrack }}</div>
+            <div class="track-status">{{ store.musicPlaying ? 'En cours' : 'En pause' }}</div>
+          </div>
+
+          <div v-else class="no-track">
+            Aucune musique
+          </div>
+
+          <div class="music-controls">
+            <button
+              @click="store.toggleMusicPlayback()"
+              :disabled="!store.currentTrack"
+              class="control-btn"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polygon v-if="!store.musicPlaying" points="8,5 19,12 8,19" fill="currentColor"/>
+                <rect v-else x="6" y="4" width="4" height="16" fill="currentColor"/>
+                <rect v-else x="14" y="4" width="4" height="16" fill="currentColor"/>
+              </svg>
+            </button>
+
+            <button
+              @click="openMusic"
+              class="control-btn settings-btn"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" fill="currentColor"/>
+                <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Bottom-Right Corner: Fullscreen -->
