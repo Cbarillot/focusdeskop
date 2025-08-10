@@ -334,21 +334,31 @@ function extractYouTubeVideoId(url) {
 
 function initializeYouTubePlayer() {
   if (typeof YT !== 'undefined' && YT.Player) {
+    // Utiliser la musique sauvegardée ou par défaut
+    const videoToLoad = extractedVideoId.value || currentVideoId.value
+
     youtubePlayer.value = new YT.Player(`youtube-player-${playerId.value}`, {
       height: '100%',
       width: '100%',
-      videoId: extractedVideoId.value,
+      videoId: videoToLoad,
       playerVars: {
         'playsinline': 1,
         'controls': 1,
         'loop': 1,
-        'playlist': extractedVideoId.value
+        'playlist': videoToLoad,
+        'autoplay': 0
       },
       events: {
-        'onStateChange': onPlayerStateChange
+        'onStateChange': onPlayerStateChange,
+        'onReady': onPlayerReady
       }
     })
   }
+}
+
+function onPlayerReady(event) {
+  // Player est prêt, on peut maintenant contrôler la lecture
+  console.log('YouTube player ready')
 }
 
 function onPlayerStateChange(event) {
