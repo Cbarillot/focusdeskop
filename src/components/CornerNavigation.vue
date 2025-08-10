@@ -123,11 +123,24 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useAppStore } from '../stores/appStore'
 
 const store = useAppStore()
 const musicPlayerVisible = ref(false)
+const vinylSlideOut = ref(false)
+const playerId = ref(Math.random().toString(36).substr(2, 9))
+const youtubePlayer = ref(null)
+const currentVideoId = ref('jfKfPfyJRdk') // Default video
+
+// Watch for changes in store music URL to extract YouTube video ID
+const extractedVideoId = computed(() => {
+  if (store.musicUrl && store.musicUrl.includes('youtube.com')) {
+    const videoId = extractYouTubeVideoId(store.musicUrl)
+    return videoId
+  }
+  return currentVideoId.value
+})
 
 function openSettings() {
   store.setActiveTab('timer')
@@ -157,7 +170,83 @@ function openTodo() {
 
 function toggleMusicPlayer() {
   musicPlayerVisible.value = !musicPlayerVisible.value
+  if (musicPlayerVisible.value && !youtubePlayer.value) {
+    initializeYouTubePlayer()
+  }
 }
+
+function handleMouseEnter() {
+  if (!store.musicPlaying) {
+    vinylSlideOut.value = true
+  }
+}
+
+function handleMouseLeave() {
+  if (!store.musicPlaying) {
+    vinylSlideOut.value = false
+  }
+}
+
+function extractYouTubeVideoId(url) {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/
+  const match = url.match(regExp)
+  return (match && match[2].length === 11) ? match[2] : null
+}
+
+function initializeYouTubePlayer() {
+  if (typeof YT !== 'undefined' && YT.Player) {
+    youtubePlayer.value = new YT.Player(`youtube-player-${playerId.value}`, {
+      height: '100%',
+      width: '100%',
+      videoId: extractedVideoId.value,
+      playerVars: {
+        'playsinline': 1,
+        'controls': 1,
+        'loop': 1,
+        'playlist': extractedVideoId.value
+      },
+      events: {
+        'onStateChange': onPlayerStateChange
+      }
+    })
+  }
+}
+
+function onPlayerStateChange(event) {
+  if (event.data === 1) { // YT.PlayerState.PLAYING
+    store.musicPlaying = true
+    vinylSlideOut.value = true
+  } else {
+    store.musicPlaying = false
+    vinylSlideOut.value = false
+  }
+}
+
+// Load YouTube API
+function loadYouTubeAPI() {
+  if (typeof YT === 'undefined') {
+    const tag = document.createElement('script')
+    tag.src = 'https://www.youtube.com/iframe_api'
+    const firstScriptTag = document.getElementsByTagName('script')[0]
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
+
+    window.onYouTubeIframeAPIReady = () => {
+      if (musicPlayerVisible.value) {
+        initializeYouTubePlayer()
+      }
+    }
+  }
+}
+
+onMounted(() => {
+  loadYouTubeAPI()
+})
+
+onUnmounted(() => {
+  if (youtubePlayer.value && youtubePlayer.value.destroy) {
+    youtubePlayer.value.destroy()
+  }
+})
 </script>
 
 <style scoped>
