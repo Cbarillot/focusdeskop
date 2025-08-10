@@ -53,33 +53,28 @@ const modes = [
 
 <style scoped>
 .ambience-layout {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative;
   min-height: 100vh;
-  padding: 100px 20px 80px;
+  padding: 80px 20px 20px;
 }
 
-.content-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 80px;
-  max-width: 1200px;
-  width: 100%;
-  align-items: center;
-}
-
-/* Timer Section */
+/* Timer Section - positioned top right */
 .timer-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  position: absolute;
+  top: 120px;
+  right: 40px;
+  z-index: 10;
 }
 
 .timer-container {
   text-align: center;
-  max-width: 500px;
+  max-width: 400px;
   width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 24px;
 }
 
 .mode-tabs {
