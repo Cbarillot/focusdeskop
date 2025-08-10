@@ -424,12 +424,29 @@ onUnmounted(() => {
     right: 12px;
   }
 
-  .music-player-panel {
-    width: 200px;
+  .vinyl-player {
+    width: 180px;
   }
 
-  .player-content {
-    padding: 12px;
+  .vinyl-player.visible {
+    height: 100px;
+  }
+
+  .album-sleeve {
+    width: 80px;
+    height: 80px;
+    padding: 6px;
+  }
+
+  .vinyl-wrapper {
+    left: 50px;
+    width: 80px;
+    height: 80px;
+  }
+
+  .vinyl-wrapper.slide-out,
+  .vinyl-wrapper.is-playing {
+    transform: translateX(40px);
   }
 }
 
