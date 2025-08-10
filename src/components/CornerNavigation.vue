@@ -503,15 +503,15 @@ onUnmounted(() => {
 
 /* Album Sleeve (Cover) */
 .album-sleeve {
-  width: 111px;
-  height: 100px;
-  background: linear-gradient(145deg, #f8f8f8, #e0e0e0);
+  width: 130px;
+  height: 120px;
+  background: linear-gradient(145deg, rgba(248, 248, 248, 0.4), rgba(224, 224, 224, 0.4));
   border-radius: 8px;
   padding: 8px;
   box-shadow:
-    0 8px 20px rgba(0, 0, 0, 0.15),
-    inset 0 0 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+    0 8px 20px rgba(0, 0, 0, 0.1),
+    inset 0 0 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   position: relative;
   z-index: 10;
   flex-shrink: 0;
