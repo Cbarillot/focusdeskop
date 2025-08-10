@@ -760,8 +760,9 @@ onUnmounted(() => {
 }
 
 .music-selector-panel.visible {
-  height: 400px;
+  height: 450px;
   opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
 }
 
 .selector-header {
