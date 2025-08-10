@@ -839,7 +839,7 @@ onUnmounted(() => {
   bottom: 0;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(8px);
-  z-index: 999;
+  z-index: 1999;
   animation: fadeIn 0.3s ease;
 }
 
