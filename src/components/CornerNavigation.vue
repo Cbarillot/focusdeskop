@@ -95,7 +95,7 @@
         <div class="vinyl-wrapper" :class="{ 'slide-out': vinylSlideOut, 'is-playing': store.musicPlaying }">
           <div class="vinyl-record" :class="{ 'is-spinning': store.musicPlaying }">
             <img
-              src="https://storage.googleapis.com/gemini-prod-us-west1-d00c/images/image-removebg-preview.png-a656fa16-10c1-44be-9f22-6bb10f83424f.png"
+              src="https://cdn.builder.io/api/v1/image/assets%2F65e0ac12b2f240efbb50b7ef46d7e58e%2Fc1c134f21db64c34b85a9e7d79334b8b"
               alt="Disque vinyle"
               class="vinyl-image"
             />
