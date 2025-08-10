@@ -446,92 +446,140 @@ onUnmounted(() => {
   outline-offset: 2px;
 }
 
-/* Music Player Panel */
-.music-player-panel {
-  width: 250px;
-  height: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  margin-top: 8px;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
-.music-player-panel.visible {
-  height: 140px;
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.player-content {
-  padding: 16px;
-}
-
-.current-track {
-  margin-bottom: 12px;
-  text-align: center;
-}
-
-.track-name {
-  color: white;
-  font-size: 13px;
-  font-weight: 500;
-  margin-bottom: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.track-status {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 11px;
-}
-
-.no-track {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
-  text-align: center;
-  margin-bottom: 12px;
-  font-style: italic;
-}
-
-.music-controls {
+/* Vinyl Music Player */
+.vinyl-player {
   display: flex;
-  gap: 8px;
-  justify-content: center;
+  align-items: center;
+  margin-top: 8px;
+  width: 220px;
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: all 0.4s ease;
+  position: relative;
 }
 
-.control-btn {
-  width: 32px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.vinyl-player.visible {
+  height: 120px;
+  opacity: 1;
+}
+
+/* Album Sleeve (Cover) */
+.album-sleeve {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(145deg, #f8f8f8, #e0e0e0);
   border-radius: 8px;
-  color: rgba(255, 255, 255, 0.8);
-  cursor: pointer;
+  padding: 8px;
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.15),
+    inset 0 0 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.album-cover {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5);
+}
+
+.youtube-player {
+  width: 100%;
+  height: 100%;
+}
+
+.player-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 20;
+}
+
+.no-video-message {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.no-video-message svg {
+  margin: 0 auto 8px;
+  opacity: 0.6;
+}
+
+.no-video-message p {
+  font-size: 11px;
+  margin: 4px 0;
+  opacity: 0.8;
+}
+
+.settings-link {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.control-btn:hover:not(:disabled) {
+.settings-link:hover {
   background: rgba(255, 255, 255, 0.2);
-  color: white;
   transform: scale(1.05);
 }
 
-.control-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+/* Vinyl Record */
+.vinyl-wrapper {
+  position: absolute;
+  left: 60px;
+  width: 100px;
+  height: 100px;
+  transition: transform 0.4s ease-out;
+  z-index: 5;
 }
 
-.settings-btn:hover:not(:disabled) {
-  background: rgba(0, 191, 165, 0.3);
-  border-color: rgba(0, 191, 165, 0.5);
+.vinyl-wrapper.slide-out {
+  transform: translateX(50px);
+}
+
+.vinyl-wrapper.is-playing {
+  transform: translateX(50px);
+}
+
+.vinyl-record {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  animation: spin 10s linear infinite;
+  animation-play-state: paused;
+}
+
+.vinyl-record.is-spinning {
+  animation-play-state: running;
+}
+
+.vinyl-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 </style>
