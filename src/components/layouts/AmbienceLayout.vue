@@ -1,87 +1,37 @@
 <template>
   <div class="ambience-layout">
-    <div class="content-container">
-      <!-- Timer Section -->
-      <div class="timer-section">
-        <div class="timer-container">
-          <!-- Mode Tabs -->
-          <div class="mode-tabs">
-            <button 
-              v-for="mode in modes" 
-              :key="mode.key"
-              class="mode-tab"
-              :class="{ active: store.timerMode === mode.key }"
-              @click="store.switchMode(mode.key)"
-            >
-              {{ mode.label }}
-            </button>
-          </div>
-          
-          <!-- Timer Display -->
-          <div class="timer-display">
-            <div class="time">{{ store.displayTime }}</div>
-            <div class="timer-controls">
-              <button 
-                class="control-btn primary"
-                @click="store.toggleTimer()"
-              >
-                {{ store.isRunning ? 'Pause' : 'Start' }}
-              </button>
-              <button 
-                class="control-btn secondary"
-                @click="store.resetTimer()"
-              >
-                Reset
-              </button>
-            </div>
-          </div>
+    <!-- Timer Section - positioned top right -->
+    <div class="timer-section">
+      <div class="timer-container">
+        <!-- Mode Tabs -->
+        <div class="mode-tabs">
+          <button
+            v-for="mode in modes"
+            :key="mode.key"
+            class="mode-tab"
+            :class="{ active: store.timerMode === mode.key }"
+            @click="store.switchMode(mode.key)"
+          >
+            {{ mode.label }}
+          </button>
         </div>
-      </div>
 
-      <!-- Music Player Section -->
-      <div class="music-section">
-        <div class="music-player">
-          <h3 class="section-title">Musique d'ambiance</h3>
-          
-          <!-- Current Track Display -->
-          <div class="current-track" v-if="store.currentTrack">
-            <div class="track-info">
-              <div class="track-name">{{ store.currentTrack }}</div>
-              <div class="track-status">{{ store.musicPlaying ? 'En cours' : 'En pause' }}</div>
-            </div>
-          </div>
-
-          <!-- Music Controls -->
-          <div class="music-controls">
-            <button 
-              class="music-btn"
-              @click="store.toggleMusicPlayback()"
-              :disabled="!store.currentTrack"
+        <!-- Timer Display -->
+        <div class="timer-display">
+          <div class="time">{{ store.displayTime }}</div>
+          <div class="timer-controls">
+            <button
+              class="control-btn primary"
+              @click="store.toggleTimer()"
             >
-              {{ store.musicPlaying ? 'Pause' : 'Play' }}
+              {{ store.isRunning ? 'Pause' : 'Start' }}
             </button>
-            <button 
-              class="music-btn secondary"
-              @click="store.stopMusic()"
-              :disabled="!store.currentTrack"
+            <button
+              class="control-btn secondary"
+              @click="store.resetTimer()"
             >
-              Stop
+              Reset
             </button>
-          </div>
-
-          <!-- Quick Playlist Selection -->
-          <div class="playlist-selection">
-            <h4>Playlists rapides</h4>
-            <div class="playlist-buttons">
-              <button 
-                v-for="playlist in store.youtubePlaylists.slice(0, 2)"
-                :key="playlist.id"
-                class="playlist-btn"
-                @click="store.playYouTubePlaylist(playlist.id)"
-              >
-                {{ playlist.shortName }}
-              </button>
-            </div>
           </div>
         </div>
       </div>
