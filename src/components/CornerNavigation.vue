@@ -488,16 +488,16 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   margin-top: 8px;
-  width: 220px;
+  width: 250px;
   height: 0;
   opacity: 0;
-  overflow: hidden;
+  overflow: visible;
   transition: all 0.4s ease;
   position: relative;
 }
 
 .vinyl-player.visible {
-  height: 120px;
+  height: 140px;
   opacity: 1;
 }
 
