@@ -10,7 +10,7 @@
             <input 
               type="number" 
               :value="Math.floor(store.pomodoroTime / 60)"
-              @input="updatePomodoroTime($event.target.value)"
+              @input="store.updatePomodoroTime($event.target.value)"
               min="1"
               max="60"
               class="time-field"
@@ -25,7 +25,7 @@
             <input 
               type="number" 
               :value="Math.floor(store.shortBreakTime / 60)"
-              @input="updateShortBreakTime($event.target.value)"
+              @input="store.updateShortBreakTime($event.target.value)"
               min="1"
               max="30"
               class="time-field"
@@ -40,7 +40,7 @@
             <input 
               type="number" 
               :value="Math.floor(store.longBreakTime / 60)"
-              @input="updateLongBreakTime($event.target.value)"
+              @input="store.updateLongBreakTime($event.target.value)"
               min="1"
               max="60"
               class="time-field"
@@ -56,13 +56,23 @@
       
       <div class="toggle-group">
         <label class="toggle-label">
-          <input type="checkbox" class="toggle-input" />
+          <input 
+            type="checkbox" 
+            class="toggle-input"
+            :checked="store.autoStartBreaks"
+            @change="store.toggleAutoStartBreaks()"
+          />
           <span class="toggle-slider"></span>
           <span>Auto start breaks</span>
         </label>
         
         <label class="toggle-label">
-          <input type="checkbox" class="toggle-input" />
+          <input 
+            type="checkbox" 
+            class="toggle-input"
+            :checked="store.autoStartPomodoros"
+            @change="store.toggleAutoStartPomodoros()"
+          />
           <span class="toggle-slider"></span>
           <span>Auto start pomodoros</span>
         </label>
@@ -78,7 +88,8 @@
           <div class="time-input">
             <input 
               type="number" 
-              value="4"
+              :value="store.longBreakInterval"
+              @input="store.setLongBreakInterval($event.target.value)"
               min="2"
               max="10"
               class="time-field"
@@ -136,8 +147,8 @@ const displayModes = [
     description: 'Timer centered on screen - perfect for deep focus sessions'
   },
   {
-    key: 'ambiance',
-    name: 'Ambiance',
+    key: 'ambience',
+    name: 'Ambience',
     description: 'Small timer in top-right corner - ideal for background timing'
   },
   {
@@ -146,27 +157,6 @@ const displayModes = [
     description: 'Clock display centered at top - less imposing, more casual'
   }
 ]
-
-function updatePomodoroTime(minutes) {
-  store.pomodoroTime = parseInt(minutes) * 60
-  if (store.timerMode === 'pomodoro') {
-    store.timeRemaining = store.pomodoroTime
-  }
-}
-
-function updateShortBreakTime(minutes) {
-  store.shortBreakTime = parseInt(minutes) * 60
-  if (store.timerMode === 'shortBreak') {
-    store.timeRemaining = store.shortBreakTime
-  }
-}
-
-function updateLongBreakTime(minutes) {
-  store.longBreakTime = parseInt(minutes) * 60
-  if (store.timerMode === 'longBreak') {
-    store.timeRemaining = store.longBreakTime
-  }
-}
 </script>
 
 <style scoped>
