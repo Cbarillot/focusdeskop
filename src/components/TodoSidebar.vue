@@ -1,227 +1,110 @@
 <template>
-  <div class="todo-sidebar" :class="{ expanded: isExpanded }">
-    <!-- Sidebar Toggle Button -->
+  <div class="todo-sidebar">
+    <!-- Todo Button -->
     <button 
-      class="sidebar-toggle"
+      class="todo-button"
       @click="toggleSidebar"
-      @mouseenter="showPreview"
-      @mouseleave="hidePreviewDelayed"
-      :title="isExpanded ? 'Réduire' : 'Tâches rapides'"
+      :class="{ expanded: isExpanded }"
+      title="Tâches"
     >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M9 11L12 14L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Timer/Stopwatch icon for tasks -->
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+        <polyline points="12,6 12,12 16,14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <span class="task-count" v-if="!isExpanded">{{ incompleteTasks.length }}</span>
     </button>
 
-    <!-- Task Preview Dropdown -->
+    <!-- Expandable Todo Panel -->
     <div 
-      class="task-preview"
-      v-if="showTaskPreview && !isExpanded"
-      @mouseenter="showPreview"
-      @mouseleave="hidePreviewDelayed"
+      class="todo-panel"
+      :class="{ expanded: isExpanded }"
     >
-      <div class="preview-header">
-        <span>Tâches à faire</span>
-        <span class="preview-count">{{ incompleteTasks.length }}</span>
+      <div class="todo-header">
+        <h3>TO DO LIST</h3>
+        <button class="close-btn" @click="toggleSidebar">×</button>
       </div>
-      <div class="preview-list">
-        <div 
-          v-for="task in previewTasks"
-          :key="task.id"
-          class="preview-task-item"
-        >
-          <button 
-            @click="store.toggleTodo(task.id)"
-            class="preview-task-check"
+      
+      <div class="todo-content">
+        <!-- Add Task -->
+        <div class="add-task-section">
+          <input 
+            v-model="newTask"
+            type="text"
+            placeholder="Nouvelle tâche..."
+            @keyup.enter="addTask"
+            class="task-input"
+          />
+          <button @click="addTask" class="add-btn">+</button>
+        </div>
+
+        <!-- Task List -->
+        <div class="task-list">
+          <div 
+            v-for="(task, index) in tasks" 
+            :key="index"
+            class="task-item"
+            @mouseenter="hoveredTask = index"
+            @mouseleave="hoveredTask = null"
           >
-            <svg v-if="task.completed" width="8" height="8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-          <span class="preview-task-text">{{ task.text }}</span>
+            <div class="task-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2"/>
+                <polyline points="12,8 12,12 15,13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            
+            <div class="task-content">
+              <span class="task-name">{{ task.name }}</span>
+              <div 
+                v-if="hoveredTask === index" 
+                class="task-tooltip"
+              >
+                {{ task.name }}
+              </div>
+            </div>
+            
+            <button 
+              @click="removeTask(index)"
+              class="task-remove"
+            >
+              ×
+            </button>
+          </div>
         </div>
-        <div v-if="incompleteTasks.length === 0" class="preview-empty">
-          Aucune tâche
-        </div>
-        <div v-if="incompleteTasks.length > 3" class="preview-more">
-          +{{ incompleteTasks.length - 3 }} autres...
-        </div>
-      </div>
-      <div class="preview-actions">
-        <button @click="toggleSidebar" class="preview-action-btn">
-          Tout voir
-        </button>
-      </div>
-    </div>
-
-    <!-- Expanded Sidebar Content -->
-    <div class="sidebar-content" v-if="isExpanded">
-      <div class="sidebar-header">
-        <h3>Tâches rapides</h3>
-        <button class="add-task-btn" @click="showAddTask = !showAddTask">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Add task form -->
-      <div v-if="showAddTask" class="add-task-form">
-        <input 
-          v-model="newTaskText"
-          @keyup.enter="addQuickTask"
-          @keyup.escape="cancelAdd"
-          type="text" 
-          placeholder="Nouvelle tâche..."
-          class="task-input"
-          ref="taskInput"
-        />
-        <div class="task-actions">
-          <button @click="addQuickTask" class="task-action-btn primary">+</button>
-          <button @click="cancelAdd" class="task-action-btn">×</button>
-        </div>
-      </div>
-
-      <!-- Todo list -->
-      <div class="todo-list">
-        <div 
-          v-for="task in recentTasks"
-          :key="task.id"
-          class="task-item"
-          :class="{ completed: task.completed }"
-        >
-          <button 
-            @click="store.toggleTodo(task.id)"
-            class="task-check"
-          >
-            <svg v-if="task.completed" width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-          <span class="task-text">{{ task.text }}</span>
-          <button @click="store.deleteTodo(task.id)" class="task-delete">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-        </div>
-
-        <div v-if="recentTasks.length === 0" class="empty-state">
-          <p>Aucune tâche</p>
-        </div>
-      </div>
-
-      <!-- Footer -->
-      <div class="sidebar-footer">
-        <button @click="openFullTodo" class="view-all-btn">
-          Tout voir
-        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue'
-import { useAppStore } from '../stores/appStore'
+import { ref, reactive } from 'vue'
 
-const store = useAppStore()
-
-// Component state
 const isExpanded = ref(false)
-const showAddTask = ref(false)
-const newTaskText = ref('')
-const taskInput = ref(null)
-const showTaskPreview = ref(false)
-let previewTimeout = null
+const newTask = ref('')
+const hoveredTask = ref(null)
 
-// Computed properties
-const recentTasks = computed(() => {
-  return store.todos.slice(-8).reverse()
-})
+const tasks = reactive([
+  { name: 'Tâche 1', completed: false },
+  { name: 'Tâche 2', completed: false },
+  { name: 'Tâche 3', completed: false }
+])
 
-const incompleteTasks = computed(() => {
-  return store.todos.filter(task => !task.completed)
-})
-
-const previewTasks = computed(() => {
-  return incompleteTasks.value.slice(0, 3)
-})
-
-// Methods
 function toggleSidebar() {
   isExpanded.value = !isExpanded.value
-  showTaskPreview.value = false
-  if (!isExpanded.value) {
-    showAddTask.value = false
-  }
 }
 
-function showPreview() {
-  if (previewTimeout) {
-    clearTimeout(previewTimeout)
-    previewTimeout = null
-  }
-  if (!isExpanded.value) {
-    showTaskPreview.value = true
-  }
-}
-
-function hidePreviewDelayed() {
-  previewTimeout = setTimeout(() => {
-    showTaskPreview.value = false
-  }, 300)
-}
-
-function addQuickTask() {
-  if (newTaskText.value.trim()) {
-    store.addTodo({
-      text: newTaskText.value.trim(),
-      priority: 'medium',
-      urgency: 'medium'
+function addTask() {
+  if (newTask.value.trim()) {
+    tasks.push({
+      name: newTask.value.trim(),
+      completed: false
     })
-    newTaskText.value = ''
-    showAddTask.value = false
+    newTask.value = ''
   }
 }
 
-function cancelAdd() {
-  showAddTask.value = false
-  newTaskText.value = ''
-}
-
-function openFullTodo() {
-  store.setActiveTab('todo')
-  if (!store.sidebarOpen) {
-    store.toggleSidebar()
-  }
-}
-
-// Auto-focus the input when showing add task form
-watch(showAddTask, (newVal) => {
-  if (newVal) {
-    nextTick(() => {
-      taskInput.value?.focus()
-    })
-  }
-})
-
-// Close sidebar when clicking outside
-function handleClickOutside(event) {
-  if (isExpanded.value && !event.target.closest('.todo-sidebar')) {
-    isExpanded.value = false
-    showAddTask.value = false
-  }
-  if (showTaskPreview.value && !event.target.closest('.todo-sidebar')) {
-    showTaskPreview.value = false
-  }
-}
-
-if (typeof document !== 'undefined') {
-  document.addEventListener('click', handleClickOutside)
+function removeTask(index) {
+  tasks.splice(index, 1)
 }
 </script>
 
@@ -231,439 +114,261 @@ if (typeof document !== 'undefined') {
   left: 20px;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 110; /* Higher than corner navigation which is z-index: 100 */
-  width: 40px;
-  transition: all 0.3s ease;
-}
-
-.todo-sidebar.expanded {
-  width: 280px;
-}
-
-.sidebar-toggle {
-  width: 40px;
-  height: 40px;
-  border-radius: 20px 20px 0 0;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-bottom: none;
-  color: rgba(255, 255, 255, 0.9);
+  z-index: 150;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
+  align-items: flex-start;
+  gap: 0;
 }
 
-.todo-sidebar.expanded .sidebar-toggle {
-  border-radius: 12px 12px 0 0;
-  width: 100%;
-  justify-content: flex-start;
-  padding-left: 12px;
-}
-
-.sidebar-toggle:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateX(2px);
-}
-
-.task-count {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  background: #ef4444;
-  color: white;
+.todo-button {
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  width: 16px;
-  height: 16px;
-  font-size: 10px;
-  font-weight: 600;
+  background: rgba(0, 191, 165, 0.9);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(0, 191, 165, 1);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  line-height: 1;
-}
-
-/* Task Preview Dropdown */
-.task-preview {
-  position: absolute;
-  left: 50px;
-  top: 0;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
-  padding: 8px;
-  width: 200px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  z-index: 120;
-}
-
-.preview-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 4px 8px 6px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  margin-bottom: 6px;
-}
-
-.preview-header span {
-  font-size: 11px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.preview-count {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
-  padding: 2px 6px;
-  font-size: 9px;
-}
-
-.preview-list {
-  max-height: 120px;
-  overflow-y: auto;
-}
-
-.preview-task-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 0;
-  font-size: 11px;
-}
-
-.preview-task-check {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transition: all 0.3s ease;
   cursor: pointer;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(0, 191, 165, 0.3);
 }
 
-.preview-task-check:hover {
-  border-color: rgba(255, 255, 255, 0.6);
+.todo-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 191, 165, 0.4);
 }
 
-.preview-task-text {
-  flex: 1;
-  color: rgba(255, 255, 255, 0.9);
-  line-height: 1.2;
+.todo-button.expanded {
+  border-radius: 12px 0 0 12px;
+  background: rgba(0, 191, 165, 1);
+}
+
+.todo-panel {
+  width: 0;
+  height: 300px;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: none;
+  border-radius: 0 12px 12px 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  transition: all 0.3s ease;
+  opacity: 0;
 }
 
-.preview-empty {
-  text-align: center;
-  padding: 12px;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 11px;
+.todo-panel.expanded {
+  width: 280px;
+  opacity: 1;
 }
 
-.preview-more {
-  text-align: center;
-  padding: 4px;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 10px;
-  font-style: italic;
-}
-
-.preview-actions {
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  text-align: center;
-}
-
-.preview-action-btn {
-  padding: 3px 8px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.preview-action-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 1);
-}
-
-.sidebar-content {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-top: none;
-  border-radius: 0 0 12px 12px;
-  padding: 12px;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.sidebar-header {
+.todo-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.sidebar-header h3 {
-  margin: 0;
+.todo-header h3 {
+  color: rgba(0, 191, 165, 1);
   font-size: 14px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  letter-spacing: 0.5px;
 }
 
-.add-task-btn {
+.close-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
   width: 24px;
   height: 24px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: rgba(255, 255, 255, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease;
 }
 
-.add-task-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
+.close-btn:hover {
+  color: white;
 }
 
-.add-task-form {
-  margin-bottom: 12px;
-  padding: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.todo-content {
+  padding: 16px;
+}
+
+.add-task-section {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .task-input {
-  width: 100%;
-  padding: 6px 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  flex: 1;
+  padding: 8px 12px;
   background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 12px;
-  margin-bottom: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
 }
 
 .task-input:focus {
-  border-color: rgba(255, 255, 255, 0.5);
   background: rgba(255, 255, 255, 0.15);
-  outline: none;
+  border-color: rgba(0, 191, 165, 0.5);
 }
 
 .task-input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.5);
 }
 
-.task-actions {
-  display: flex;
-  gap: 4px;
-  justify-content: flex-end;
-}
-
-.task-action-btn {
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
+.add-btn {
+  width: 32px;
+  height: 32px;
+  background: rgba(0, 191, 165, 0.8);
   border: none;
-  font-size: 12px;
+  border-radius: 8px;
+  color: white;
+  font-size: 18px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s ease;
 }
 
-.task-action-btn.primary {
-  background: rgba(34, 197, 94, 0.8);
-  color: white;
+.add-btn:hover {
+  background: rgba(0, 191, 165, 1);
+  transform: scale(1.05);
 }
 
-.task-action-btn.primary:hover {
-  background: rgba(34, 197, 94, 1);
-}
-
-.task-action-btn:not(.primary) {
-  background: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.task-action-btn:not(.primary):hover {
-  background: rgba(255, 255, 255, 0.3);
-  color: rgba(255, 255, 255, 1);
-}
-
-.todo-list {
-  max-height: 250px;
+.task-list {
+  max-height: 180px;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.task-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.task-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.task-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
 }
 
 .task-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  transition: opacity 0.2s ease;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
 }
 
 .task-item:last-child {
   border-bottom: none;
 }
 
-.task-item.completed {
-  opacity: 0.6;
-}
-
-.task-check {
-  width: 16px;
-  height: 16px;
-  border-radius: 3px;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.task-icon {
+  color: rgba(0, 191, 165, 0.8);
   flex-shrink: 0;
 }
 
-.task-check:hover {
-  border-color: rgba(255, 255, 255, 0.6);
-}
-
-.task-item.completed .task-check {
-  background: rgba(34, 197, 94, 0.8);
-  border-color: rgba(34, 197, 94, 0.8);
-  color: white;
-}
-
-.task-text {
+.task-content {
   flex: 1;
-  font-size: 12px;
+  position: relative;
+}
+
+.task-name {
   color: rgba(255, 255, 255, 0.9);
-  line-height: 1.3;
+  font-size: 13px;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
 }
 
-.task-item.completed .task-text {
-  text-decoration: line-through;
-  color: rgba(255, 255, 255, 0.6);
+.task-tooltip {
+  position: absolute;
+  left: 0;
+  top: -30px;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.task-delete {
+.task-remove {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
   width: 20px;
   height: 20px;
-  border-radius: 3px;
-  border: none;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease;
   flex-shrink: 0;
-  opacity: 0;
 }
 
-.task-item:hover .task-delete {
-  opacity: 1;
+.task-remove:hover {
+  color: rgba(255, 100, 100, 0.8);
 }
 
-.task-delete:hover {
-  background: rgba(239, 68, 68, 0.2);
-  color: rgba(239, 68, 68, 0.8);
-}
-
-.empty-state {
-  text-align: center;
-  padding: 20px 10px;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.empty-state p {
-  margin: 0;
-  font-size: 12px;
-}
-
-.sidebar-footer {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  text-align: center;
-}
-
-.view-all-btn {
-  padding: 4px 12px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.view-all-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 1);
-}
-
-/* Responsive */
+/* Responsive design */
 @media (max-width: 768px) {
   .todo-sidebar {
     left: 15px;
-    top: 45%;
   }
   
-  .todo-sidebar.expanded {
-    width: 250px;
+  .todo-button {
+    width: 44px;
+    height: 44px;
   }
   
-  .task-preview {
-    left: 45px;
-    width: 180px;
+  .todo-panel.expanded {
+    width: 260px;
   }
 }
 
 @media (max-width: 480px) {
   .todo-sidebar {
-    left: 12px;
-    top: 35%;
-    z-index: 120; /* Even higher on mobile */
+    left: 10px;
   }
   
-  .todo-sidebar.expanded {
-    width: calc(100vw - 80px);
-    max-width: 220px;
+  .todo-panel.expanded {
+    width: 240px;
   }
   
-  .task-preview {
-    left: 45px;
-    width: 160px;
+  .todo-header {
+    padding: 12px 16px;
+  }
+  
+  .todo-content {
+    padding: 12px;
   }
 }
 </style>

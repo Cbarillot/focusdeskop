@@ -5,6 +5,7 @@
 
     <!-- Main Layout -->
     <div class="main-layout">
+       <MusicPlayerCompact />
       <!-- Header with Settings Button -->
       <header class="app-header">
         <button 
@@ -26,7 +27,7 @@
 
       <!-- Corner Navigation - for fixed elements -->
       <CornerNavigation />
-      
+
       <!-- Mood Bar - for mood switching -->
       <MoodBar />
     </div>
@@ -50,6 +51,7 @@
 </template>
 
 <script setup>
+import MusicPlayerCompact from './components/MusicPlayerCompact.vue'
 import { ref, computed } from 'vue'
 import { useAppStore } from './stores/appStore'
 import DynamicBackground from './components/DynamicBackground.vue'
