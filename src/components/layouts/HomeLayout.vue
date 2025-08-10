@@ -63,12 +63,13 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
+  opacity: 0.7;
 }
 
 .time-display {
   font-family: 'Be Vietnam Pro', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: clamp(6rem, 20vw, 180px);
+  font-size: clamp(4rem, 12vw, 120px);
   font-weight: 900;
   line-height: 0.8;
   letter-spacing: -0.04em;
@@ -80,7 +81,7 @@ onUnmounted(() => {
 
 .date-display {
   font-family: 'Be Vietnam Pro', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: clamp(1.2rem, 4vw, 2rem);
+  font-size: clamp(1rem, 3vw, 1.6rem);
   font-weight: 300;
   color: rgba(255, 255, 255, 0.8);
   text-transform: capitalize;
