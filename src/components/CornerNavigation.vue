@@ -250,13 +250,6 @@ function openTodo() {
   }
 }
 
-function toggleMusicPlayer() {
-  musicPlayerVisible.value = !musicPlayerVisible.value
-  if (musicPlayerVisible.value && !youtubePlayer.value) {
-    initializeYouTubePlayer()
-  }
-}
-
 function toggleMusicSelector() {
   musicSelectorVisible.value = !musicSelectorVisible.value
 }
