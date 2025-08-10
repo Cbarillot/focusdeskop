@@ -1,0 +1,6 @@
+[build]
+  command = "npm run build"
+  publish = "dist" # remplace "dist" par ton dossier de build si besoin
+
+[[plugins]]
+  package = "@netlify/plugin-git-lfs"
