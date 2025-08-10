@@ -84,7 +84,7 @@
                   <circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="2"/>
                 </svg>
                 <p>Aucune musique</p>
-                <button @click="openMusic" class="settings-link">
+                <button @click="openMusicSettings" class="settings-link">
                   Paramètres
                 </button>
               </div>
