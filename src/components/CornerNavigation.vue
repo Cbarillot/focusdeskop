@@ -119,11 +119,17 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import { useAppStore } from '../stores/appStore'
+
 const store = useAppStore()
+const musicPlayerVisible = ref(false)
 
 function openSettings() {
   store.setActiveTab('timer')
+  if (!store.sidebarOpen) {
+    store.toggleSidebar()
+  }
 }
 
 function toggleFullscreen() {
@@ -132,10 +138,21 @@ function toggleFullscreen() {
 
 function openMusic() {
   store.setActiveTab('music')
+  if (!store.sidebarOpen) {
+    store.toggleSidebar()
+  }
+  musicPlayerVisible.value = false
 }
 
 function openTodo() {
   store.setActiveTab('todo')
+  if (!store.sidebarOpen) {
+    store.toggleSidebar()
+  }
+}
+
+function toggleMusicPlayer() {
+  musicPlayerVisible.value = !musicPlayerVisible.value
 }
 </script>
 
