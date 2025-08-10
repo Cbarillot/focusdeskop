@@ -90,12 +90,20 @@ onUnmounted(() => {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  .home-layout {
+    padding-top: 100px;
+  }
+
   .digital-clock {
-    gap: 15px;
+    gap: 12px;
   }
 }
 
 @media (max-width: 480px) {
+  .home-layout {
+    padding-top: 80px;
+  }
+
   .digital-clock {
     gap: 10px;
   }
