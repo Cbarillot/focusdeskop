@@ -538,7 +538,11 @@ onUnmounted(() => {
   }
 
   .music-selector-panel {
-    width: 300px;
+    width: 360px;
+  }
+
+  .music-selector-panel.visible {
+    height: 420px;
   }
 
   /* Stack buttons vertically on mobile for better touch targets */
