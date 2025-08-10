@@ -326,4 +326,93 @@ function toggleMusicPlayer() {
   outline: 2px solid var(--color-primary, #8B5CF6);
   outline-offset: 2px;
 }
+
+/* Music Player Panel */
+.music-player-panel {
+  width: 250px;
+  height: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  margin-top: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.music-player-panel.visible {
+  height: 140px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.player-content {
+  padding: 16px;
+}
+
+.current-track {
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.track-name {
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-status {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+}
+
+.no-track {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  text-align: center;
+  margin-bottom: 12px;
+  font-style: italic;
+}
+
+.music-controls {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.control-btn {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.control-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  transform: scale(1.05);
+}
+
+.control-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.settings-btn:hover:not(:disabled) {
+  background: rgba(0, 191, 165, 0.3);
+  border-color: rgba(0, 191, 165, 0.5);
+}
 </style>
