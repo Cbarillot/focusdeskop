@@ -235,11 +235,11 @@ function toggleFullscreen() {
 }
 
 function openMusic() {
-  store.setActiveTab('music')
-  if (!store.sidebarOpen) {
-    store.toggleSidebar()
+  // Simple clic : ouvre/ferme le player de musique
+  musicPlayerVisible.value = !musicPlayerVisible.value
+  if (musicPlayerVisible.value && !youtubePlayer.value) {
+    initializeYouTubePlayer()
   }
-  musicPlayerVisible.value = false
 }
 
 function openTodo() {
