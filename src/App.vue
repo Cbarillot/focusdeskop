@@ -27,12 +27,6 @@
       <!-- Corner Navigation - for fixed elements -->
       <CornerNavigation />
 
-      <!-- Todo Sidebar - for tasks -->
-      <TodoSidebar />
-
-      <!-- Music Player - compact version -->
-      <MusicPlayerCompact />
-
       <!-- Mood Bar - for mood switching -->
       <MoodBar />
     </div>
