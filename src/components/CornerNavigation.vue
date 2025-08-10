@@ -747,6 +747,24 @@ onUnmounted(() => {
   to { transform: rotate(360deg); }
 }
 
+/* Music Selector Overlay */
+.music-selector-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  z-index: 999;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* Music Selector Panel */
 .music-selector-panel {
   position: fixed;
