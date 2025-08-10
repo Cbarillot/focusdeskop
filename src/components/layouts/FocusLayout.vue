@@ -136,11 +136,11 @@ function getCurrentModeLabel() {
 }
 
 .control-btn {
-  padding: 16px 32px;
+  padding: 14px 28px;
   border-radius: var(--border-radius-full, 25px);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
-  min-width: 120px;
+  min-width: 110px;
   transition: all var(--transition-fast, 0.2s);
 }
 
