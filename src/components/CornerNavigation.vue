@@ -266,13 +266,26 @@ function loadCustomVideo() {
     const videoId = extractYouTubeVideoId(customYouTubeUrl.value)
     if (videoId) {
       currentVideoId.value = videoId
+
+      // Sauvegarder dans le store pour persistence
+      store.currentTrack = customYouTubeUrl.value
+      store.musicUrl = customYouTubeUrl.value
+
+      // Charger directement dans le player YouTube existant
       if (youtubePlayer.value && youtubePlayer.value.loadVideoById) {
         youtubePlayer.value.loadVideoById(videoId)
+        // Démarrer automatiquement la lecture
+        setTimeout(() => {
+          if (youtubePlayer.value && youtubePlayer.value.playVideo) {
+            youtubePlayer.value.playVideo()
+          }
+        }, 500)
       }
+
       customYouTubeUrl.value = ''
       musicSelectorVisible.value = false
     } else {
-      alert('URL YouTube invalide')
+      alert('URL YouTube invalide. Vérifiez le format du lien.')
     }
   }
 }
