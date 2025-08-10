@@ -75,8 +75,9 @@ function getCurrentModeLabel() {
 
 .timer-container {
   text-align: center;
-  max-width: 600px;
+  max-width: 520px;
   width: 100%;
+  opacity: 0.85;
 }
 
 .mode-tabs {
