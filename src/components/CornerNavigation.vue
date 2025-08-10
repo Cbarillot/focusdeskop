@@ -292,13 +292,31 @@ function toggleMusicPlayer() {
     height: 40px;
   }
 
-  .corner-top-right,
-  .corner-bottom-left,
-  .corner-bottom-right {
+  .corner-top-right {
     top: 12px;
     right: 12px;
+  }
+
+  .corner-middle-left {
+    left: 12px;
+  }
+
+  .corner-bottom-left {
     bottom: 12px;
     left: 12px;
+  }
+
+  .corner-bottom-right {
+    bottom: 12px;
+    right: 12px;
+  }
+
+  .music-player-panel {
+    width: 200px;
+  }
+
+  .player-content {
+    padding: 12px;
   }
 }
 
