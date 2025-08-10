@@ -26,7 +26,10 @@
 
       <!-- Corner Navigation - for fixed elements -->
       <CornerNavigation />
-      
+
+      <!-- Todo Sidebar - for tasks -->
+      <TodoSidebar />
+
       <!-- Mood Bar - for mood switching -->
       <MoodBar />
     </div>
