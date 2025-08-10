@@ -104,6 +104,13 @@
         </div>
       </div>
 
+      <!-- Music Selector Overlay -->
+      <div
+        v-if="musicSelectorVisible"
+        class="music-selector-overlay"
+        @click="toggleMusicSelector"
+      ></div>
+
       <!-- Music Selector Panel -->
       <div
         class="music-selector-panel"
