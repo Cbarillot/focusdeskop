@@ -103,6 +103,51 @@
           </div>
         </div>
       </div>
+
+      <!-- Music Selector Panel -->
+      <div
+        class="music-selector-panel"
+        :class="{ visible: musicSelectorVisible }"
+      >
+        <div class="selector-header">
+          <h3>Sélectionner une musique</h3>
+          <button @click="toggleMusicSelector" class="close-selector">×</button>
+        </div>
+
+        <div class="selector-content">
+          <!-- YouTube URL Input -->
+          <div class="url-input-section">
+            <label>Lien YouTube :</label>
+            <div class="url-input-group">
+              <input
+                v-model="customYouTubeUrl"
+                type="url"
+                placeholder="https://youtube.com/watch?v=..."
+                class="url-input"
+                @keyup.enter="loadCustomVideo"
+              />
+              <button @click="loadCustomVideo" class="load-btn">Charger</button>
+            </div>
+          </div>
+
+          <!-- Preset Playlists -->
+          <div class="presets-section">
+            <label>Playlists pré-enregistrées :</label>
+            <div class="presets-grid">
+              <button
+                v-for="preset in musicPresets"
+                :key="preset.id"
+                @click="loadPresetVideo(preset.videoId)"
+                class="preset-btn"
+                :class="{ active: currentVideoId === preset.videoId }"
+              >
+                <div class="preset-title">{{ preset.title }}</div>
+                <div class="preset-desc">{{ preset.description }}</div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Bottom-Right Corner: Fullscreen -->
