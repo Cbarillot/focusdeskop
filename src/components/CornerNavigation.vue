@@ -863,7 +863,7 @@ onUnmounted(() => {
   overflow: hidden;
   transition: all 0.4s ease;
   opacity: 0;
-  z-index: 1000;
+  z-index: 2000;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
