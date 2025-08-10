@@ -117,11 +117,11 @@ function getCurrentModeLabel() {
 
 .time {
   font-family: 'Be Vietnam Pro', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: clamp(5rem, 15vw, 140px);
+  font-size: clamp(4.5rem, 13vw, 120px);
   font-weight: 900;
   line-height: 0.9;
   letter-spacing: -0.04em;
-  margin-bottom: 40px;
+  margin-bottom: 36px;
   color: #fff;
   text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
   -webkit-font-smoothing: antialiased;
