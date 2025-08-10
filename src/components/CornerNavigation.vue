@@ -467,27 +467,32 @@ onUnmounted(() => {
   }
 
   .vinyl-player {
-    width: 200px;
+    width: 220px;
+  }
+
+  .vinyl-player.visible {
+    height: 120px;
   }
 
   .album-sleeve {
-    width: 90px;
-    height: 90px;
+    width: 110px;
+    height: 100px;
     padding: 6px;
   }
 
   .vinyl-wrapper {
-    left: 55px;
-    width: 90px;
-    height: 90px;
+    left: 70px;
+    width: 100px;
+    height: 100px;
   }
 
-  .vinyl-wrapper.slide-out {
-    transform: translateX(45px);
-  }
-
+  .vinyl-wrapper.slide-out,
   .vinyl-wrapper.is-playing {
-    transform: translateX(45px);
+    transform: translateX(25px);
+  }
+
+  .music-selector-panel {
+    width: 300px;
   }
 
   /* Stack buttons vertically on mobile for better touch targets */
