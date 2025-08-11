@@ -338,23 +338,23 @@ function getEmbedUrl() {
   return store.selectedMusicSource.url
 }
 
-// Sizing functions based on user requirements - more square layout
+// Sizing functions based on user requirements - standardized 350x350px square layout
 function getPlayerWidth() {
   if (store.selectedMusicSource.type === 'deezer') {
-    return '300'  // Slightly smaller for square album cover appearance  
+    return '350'  // Standardized square format
   } else if (store.selectedMusicSource.type === 'spotify') {
     return '300'  // 300-380px recommended
   }
-  return '280'  // Default width for compact player
+  return '350'  // Default width for square layout
 }
 
 function getPlayerHeight() {
   if (store.selectedMusicSource.type === 'deezer') {
-    return '300'  // Square format matching width for album cover look
+    return '350'  // Square format matching width for album cover look
   } else if (store.selectedMusicSource.type === 'spotify') {
     return '120'  // Mini player height (80-120px)
   }
-  return '152'  // Default height
+  return '350'  // Square format for YouTube and others
 }
 
 // Status Functions
@@ -466,8 +466,29 @@ onBeforeUnmount(() => {
     height: 48px;
   }
 
+  .music-player-panel {
+    width: 400px; /* Slightly reduced for smaller screens */
+  }
+
   .music-player-panel .player-content {
     padding: 8px;
+  }
+
+  .album-sleeve {
+    width: 300px; /* Slightly smaller for compact desktop */
+    height: 300px;
+  }
+
+  .vinyl-wrapper {
+    width: 300px;
+    height: 300px;
+    margin-left: -100px;
+  }
+
+  .deezer-vinyl-wrapper {
+    width: 300px;
+    height: 300px;
+    margin-left: -100px;
   }
 
   .vinyl-player .player-container {
@@ -477,7 +498,7 @@ onBeforeUnmount(() => {
 }
 
 .music-player-panel {
-  width: 400px; /* Increased to accommodate horizontal Deezer layout (300px widget + 280px vinyl - 60px overlap = ~520px, so 400px with some padding) */
+  width: 450px; /* Increased to accommodate 350px widget + 350px vinyl - overlap */
   background: rgba(255, 255, 255, 0.06); /* very light white, almost transparent */
   backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.25);
@@ -559,8 +580,8 @@ onBeforeUnmount(() => {
 }
 
 .album-sleeve {
-  width: 180px; /* Updated for YouTube 16:9 ratio (320px would be too wide for compact) */
-  aspect-ratio: 16 / 9; /* YouTube 16:9 ratio */
+  width: 350px; /* Standardized square format for all video players */
+  height: 350px; /* Square format instead of 16:9 */
   background: #ffffff; /* opaque white frame */
   border: 2px solid rgba(255,255,255,0.6); /* subtle white border */
   border-radius: 14px;
@@ -580,10 +601,10 @@ onBeforeUnmount(() => {
 }
 
 .vinyl-wrapper {
-  width: 180px;
-  aspect-ratio: 1 / 1; /* Keep vinyl square */
+  width: 350px; /* Match widget size exactly */
+  height: 350px; /* Square format */
   transition: transform 0.4s ease-out;
-  margin-left: -100px; /* deeper under sleeve, adjusted for larger sleeve */
+  margin-left: -120px; /* Overlap with album cover for emerging effect */
   position: relative;
   z-index: 1; /* behind sleeve */
   pointer-events: none; /* avoid blocking interactions */
@@ -768,11 +789,11 @@ onBeforeUnmount(() => {
 }
 
 .deezer-vinyl-wrapper {
-  width: 280px; /* Slightly smaller than widget for visual balance */
-  height: 280px;
+  width: 350px; /* Match widget size exactly - no exceeding */
+  height: 350px;
   position: relative;
   z-index: 1;
-  margin-left: -60px; /* Overlap with album cover to simulate emerging effect */
+  margin-left: -120px; /* Consistent overlap with YouTube layout */
   pointer-events: none; /* Avoid blocking widget interactions */
 }
 
@@ -785,7 +806,7 @@ onBeforeUnmount(() => {
 
 /* Hover effect - vinyl slides out more when hovering over the player */
 .music-player-panel:hover .deezer-vinyl-wrapper {
-  transform: translateX(20px);
+  transform: translateX(30px); /* Consistent with YouTube hover effect */
   transition: transform 0.4s ease-out;
 }
 
@@ -830,15 +851,17 @@ onBeforeUnmount(() => {
   }
   
   .music-player-panel {
-    width: 320px; /* Reduced for mobile - single column layout */
+    width: 360px; /* Adjusted for mobile - accommodate smaller square widgets */
   }
   
   .album-sleeve {
-    width: 160px; /* Smaller on mobile */
+    width: 280px; /* Smaller square on mobile */
+    height: 280px;
   }
   
   .vinyl-wrapper {
-    width: 160px;
+    width: 280px;
+    height: 280px;
     margin-left: -90px;
   }
   
@@ -849,8 +872,8 @@ onBeforeUnmount(() => {
   }
   
   .deezer-vinyl-wrapper {
-    width: 200px;
-    height: 200px;
+    width: 280px;
+    height: 280px;
     margin-left: 0;
   }
   
@@ -867,15 +890,17 @@ onBeforeUnmount(() => {
   }
   
   .music-player-panel {
-    width: 280px; /* Further reduced for small screens */
+    width: 320px; /* Further reduced for small screens */
   }
   
   .album-sleeve {
-    width: 140px;
+    width: 240px;
+    height: 240px;
   }
   
   .vinyl-wrapper {
-    width: 140px;
+    width: 240px;
+    height: 240px;
     margin-left: -80px;
   }
   
@@ -889,8 +914,8 @@ onBeforeUnmount(() => {
   
   /* Mobile Deezer layout adjustments */
   .deezer-vinyl-wrapper {
-    width: 160px;
-    height: 160px;
+    width: 240px;
+    height: 240px;
   }
   
   .album-cover-frame .embedded-player iframe {
