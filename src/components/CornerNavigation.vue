@@ -68,10 +68,10 @@
 
     <!-- To-Do Centered Modal -->
     <div v-if="todoModalVisible" class="todo-overlay" @click="closeTodo"></div>
-    <div class="todo-modal-panel" :class="{ visible: todoModalVisible }" role="dialog" aria-modal="true" aria-label="Panneau To-Do">
+    <div v-if="todoModalVisible" class="todo-modal-panel visible" role="dialog" aria-modal="true" aria-label="Panneau To-Do">
       <div class="selector-header">
         <h3>To-Do</h3>
-        <button class="open-settings" title="ouvrir dans paramètres" aria-label="ouvrir dans paramètres" @click="openSettings">
+        <button class="open-settings" title="ouvrir dans paramètres" aria-label="ouvrir dans paramètres" @click="openTodoSettings">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <rect x="3.5" y="3.5" width="12" height="12" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
             <path d="M13 11h7v9H11v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
@@ -217,15 +217,7 @@
       </button>
     </div>
 
-    <!-- Mood Buttons -->
-    <div class="mood-buttons" v-show="!todoModalVisible" :class="{ behind: todoModalVisible }">
-      <!-- Home Mood Button -->
-      <button class="mood-button" title="Mode Accueil" aria-label="Mode Accueil"><span class="icon icon-home" aria-hidden="true"></span></button>
-      <!-- Ambience Mood Button (Lotus icon) -->
-      <button class="mood-button" title="Mode Ambiance" aria-label="Mode Ambiance"><span class="icon icon-ambience" aria-hidden="true"></span></button>
-      <!-- Focus Mood Button (Timer icon) -->
-      <button class="mood-button active" title="Mode Focus" aria-label="Mode Focus"><span class="icon icon-focus" aria-hidden="true"></span></button>
-    </div>
+    <!-- Mood buttons removed - redundant with MoodBar component at bottom -->
   </div>
 </template>
 
@@ -298,8 +290,32 @@ function chronoPieces(min) {
   return ['full', 'full']
 }
 
-function openSettings() {
+function openSettings(tab = 'themes') {
+  store.setActiveTab(tab)
+  if (!store.sidebarOpen) {
+    store.toggleSidebar()
+  }
+}
+
+function openTodoSettings() {
+  // Close todo modal and open todo settings in sidebar
+  todoModalVisible.value = false
+  toggleTodoGlobalClass()
+  store.setActiveTab('todo')
+  if (!store.sidebarOpen) {
+    store.toggleSidebar()
+  }
+}
+
+function openTimerSettings() {
   store.setActiveTab('timer')
+  if (!store.sidebarOpen) {
+    store.toggleSidebar()
+  }
+}
+
+function openThemeSettings() {
+  store.setActiveTab('themes')
   if (!store.sidebarOpen) {
     store.toggleSidebar()
   }
@@ -328,6 +344,17 @@ function closeTodo() {
   toggleTodoGlobalClass()
 }
 
+function toggleTodoGlobalClass() {
+  // Add or remove global class to handle overlay behavior
+  if (typeof document !== 'undefined') {
+    if (todoModalVisible.value) {
+      document.body.classList.add('todo-open')
+    } else {
+      document.body.classList.remove('todo-open')
+    }
+  }
+}
+
 function handleKeydown(e) {
   if (e.key === 'Escape' && todoModalVisible.value) {
     e.stopPropagation()
@@ -341,10 +368,6 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', onKeydown)
 })
 
 function toggleMusicSelector() {
