@@ -16,7 +16,7 @@
       
       <!-- Timer Display -->
       <div class="timer-display">
-        <div class="time">{{ store.displayTime }}</div>
+        <div class="time" @click="openTimerSettings" title="Cliquez pour changer la durée">{{ store.displayTime }}</div>
         <div class="timer-controls">
           <button 
             class="control-btn primary"
@@ -61,6 +61,13 @@ const modes = [
 function getCurrentModeLabel() {
   const mode = modes.find(m => m.key === store.timerMode)
   return mode ? mode.label : 'Pomodoro'
+}
+
+function openTimerSettings() {
+  store.setActiveTab('timer')
+  if (!store.sidebarOpen) {
+    store.toggleSidebar()
+  }
 }
 </script>
 
@@ -126,6 +133,13 @@ function getCurrentModeLabel() {
   text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.time:hover {
+  opacity: 0.8;
+  transform: scale(1.02);
 }
 
 .timer-controls {

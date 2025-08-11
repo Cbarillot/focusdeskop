@@ -5,7 +5,7 @@
 
     <!-- Main Layout -->
     <div class="main-layout">
-       <!-- <MusicPlayerCompact /> Removed - redundant with corner navigation music controls -->
+       <MusicPlayerCompact />
       <!-- Header with Settings Button removed (corner button retained in CornerNavigation.vue) -->
       
       <!-- Main Content Area - Changes based on mood -->

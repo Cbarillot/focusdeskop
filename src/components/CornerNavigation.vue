@@ -217,15 +217,7 @@
       </button>
     </div>
 
-    <!-- Mood Buttons -->
-    <div class="mood-buttons" v-show="!todoModalVisible" :class="{ behind: todoModalVisible }">
-      <!-- Home Mood Button -->
-      <button class="mood-button" title="Mode Accueil" aria-label="Mode Accueil"><span class="icon icon-home" aria-hidden="true"></span></button>
-      <!-- Ambience Mood Button (Lotus icon) -->
-      <button class="mood-button" title="Mode Ambiance" aria-label="Mode Ambiance"><span class="icon icon-ambience" aria-hidden="true"></span></button>
-      <!-- Focus Mood Button (Timer icon) -->
-      <button class="mood-button active" title="Mode Focus" aria-label="Mode Focus"><span class="icon icon-focus" aria-hidden="true"></span></button>
-    </div>
+    <!-- Mood buttons removed - redundant with MoodBar component at bottom -->
   </div>
 </template>
 

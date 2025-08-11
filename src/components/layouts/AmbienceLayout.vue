@@ -18,7 +18,7 @@
 
         <!-- Timer Display -->
         <div class="timer-display">
-          <div class="time">{{ store.displayTime }}</div>
+          <div class="time" @click="openTimerSettings" title="Cliquez pour changer la durée">{{ store.displayTime }}</div>
           <div class="timer-controls">
             <button
               class="control-btn primary"
@@ -49,6 +49,13 @@ const modes = [
   { key: 'shortBreak', label: 'Pause Courte' },
   { key: 'longBreak', label: 'Pause Longue' }
 ]
+
+function openTimerSettings() {
+  store.setActiveTab('timer')
+  if (!store.sidebarOpen) {
+    store.toggleSidebar()
+  }
+}
 </script>
 
 <style scoped>
@@ -121,6 +128,13 @@ const modes = [
   margin-bottom: 20px;
   color: #fff;
   text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.time:hover {
+  opacity: 0.8;
+  transform: scale(1.02);
 }
 
 .timer-controls {
