@@ -20,6 +20,14 @@
       <!-- Default state - no music selected -->
       <div v-if="!store.musicSelected" class="player-content" @click="openMusicSettings" title="Cliquez pour ouvrir les réglages musique">
         <div class="default-state">
+          <div class="default-icon-container">
+            <!-- Music note icon -->
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="default-music-icon">
+              <path d="M12 3V13.55L11.4 13.1C10.8 12.65 10 12.65 9.4 13.1L8 14.1V3H12ZM8 15.35L9.4 14.35C10 14.05 10.6 14.05 11.2 14.35L12 14.9V3H8V15.35ZM6 3V17L10.5 14L15 17V3H6Z" fill="currentColor"/>
+              <circle cx="7" cy="19" r="2" fill="currentColor"/>
+              <circle cx="17" cy="19" r="2" fill="currentColor"/>
+            </svg>
+          </div>
           <div class="default-message">let's play something !</div>
           <div class="default-instruction">Click to select music</div>
         </div>
@@ -338,23 +346,23 @@ function getEmbedUrl() {
   return store.selectedMusicSource.url
 }
 
-// Sizing functions - reduced overall size while maintaining proportions
+// Sizing functions - significantly reduced size as requested (divide by 2)
 function getPlayerWidth() {
   if (store.selectedMusicSource.type === 'deezer') {
-    return '280'  // Reduced square format
+    return '140'  // Significantly reduced square format (280/2)
   } else if (store.selectedMusicSource.type === 'spotify') {
-    return '300'  // 300-380px recommended
+    return '200'  // Reduced from 300px for better proportions
   }
-  return '280'  // Reduced width for better layout proportions
+  return '140'  // Significantly reduced width for YouTube (280/2)
 }
 
 function getPlayerHeight() {
   if (store.selectedMusicSource.type === 'deezer') {
-    return '280'  // Square format matching width
+    return '140'  // Square format matching width (280/2)
   } else if (store.selectedMusicSource.type === 'spotify') {
-    return '120'  // Mini player height (80-120px)
+    return '80'   // Reduced mini player height
   }
-  return '280'  // Reduced square format for YouTube
+  return '140'  // Significantly reduced square format for YouTube (280/2)
 }
 
 // Status Functions
@@ -467,7 +475,7 @@ onBeforeUnmount(() => {
   }
 
   .music-player-panel {
-    width: 340px; /* Reduced for compact desktop screens */
+    width: 220px; /* Further reduced for compact desktop screens */
   }
 
   .music-player-panel .player-content {
@@ -475,20 +483,20 @@ onBeforeUnmount(() => {
   }
 
   .album-sleeve {
-    width: 240px; /* Smaller for compact desktop */
-    height: 240px;
+    width: 120px; /* Even smaller for compact desktop */
+    height: 120px;
   }
 
   .vinyl-wrapper {
-    width: 240px;
-    height: 240px;
-    margin-left: -80px;
+    width: 120px;
+    height: 120px;
+    margin-left: -40px;
   }
 
   .deezer-vinyl-wrapper {
-    width: 240px;
-    height: 240px;
-    margin-left: -80px;
+    width: 120px;
+    height: 120px;
+    margin-left: -40px;
   }
 
   .vinyl-player .player-container {
@@ -498,7 +506,7 @@ onBeforeUnmount(() => {
 }
 
 .music-player-panel {
-  width: 380px; /* Reduced to accommodate smaller 280px widgets */
+  width: 240px; /* Accommodate default state (200px) and smaller widgets (140px) */
   background: rgba(255, 255, 255, 0.06); /* very light white, almost transparent */
   backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.25);
@@ -540,29 +548,62 @@ onBeforeUnmount(() => {
   padding: 16px;
 }
 
-/* Default state styles */
+/* Default state styles - optimized 200x200px format */
 .default-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  padding: 40px 20px;
+  padding: 20px;
   cursor: pointer;
   transition: all 0.2s ease;
+  width: 200px; /* Target 200x200px as requested */
+  height: 160px; /* Slightly reduced to accommodate text */
+  margin: 0 auto;
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .default-state:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.02);
+}
+
+.default-icon-container {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: rgba(0, 191, 165, 0.1);
+  border-radius: 50%;
+  border: 2px solid rgba(0, 191, 165, 0.3);
+}
+
+.default-music-icon {
+  color: rgba(0, 191, 165, 0.8);
+  transition: all 0.2s ease;
+}
+
+.default-state:hover .default-music-icon {
+  color: rgba(0, 191, 165, 1);
+  transform: scale(1.1);
 }
 
 .default-message {
   color: rgba(255, 255, 255, 0.9);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .default-instruction {
   color: rgba(255, 255, 255, 0.6);
-  font-size: 12px;
+  font-size: 11px;
   font-style: italic;
 }
 
@@ -580,8 +621,8 @@ onBeforeUnmount(() => {
 }
 
 .album-sleeve {
-  width: 280px; /* Reduced from 350px for better layout proportions */
-  height: 280px; /* Square format */
+  width: 140px; /* Significantly reduced from 280px for much smaller layout */
+  height: 140px; /* Square format */
   background: #ffffff; /* opaque white frame */
   border: 2px solid rgba(255,255,255,0.6); /* subtle white border */
   border-radius: 14px;
@@ -601,17 +642,17 @@ onBeforeUnmount(() => {
 }
 
 .vinyl-wrapper {
-  width: 280px; /* Match reduced widget size */
-  height: 280px; /* Square format */
+  width: 140px; /* Match significantly reduced widget size */
+  height: 140px; /* Square format */
   transition: transform 0.4s ease-out;
-  margin-left: -100px; /* Proportionally adjusted overlap for emerging effect */
+  margin-left: -50px; /* Proportionally reduced overlap for emerging effect */
   position: relative;
   z-index: 1; /* behind sleeve */
   pointer-events: none; /* avoid blocking interactions */
 }
 
 .music-player-panel:hover .vinyl-wrapper:not(.is-playing) {
-  transform: translateX(30px);
+  transform: translateX(15px); /* Proportionally reduced hover effect */
 }
 
 .vinyl-record {
@@ -790,11 +831,11 @@ onBeforeUnmount(() => {
 }
 
 .deezer-vinyl-wrapper {
-  width: 280px; /* Match widget size exactly for proper proportions */
-  height: 280px;
+  width: 140px; /* Match significantly reduced widget size exactly for proper proportions */
+  height: 140px; /* Ensure vinyl doesn't exceed widget height */
   position: relative;
   z-index: 1;
-  margin-left: -100px; /* Consistent overlap with YouTube layout */
+  margin-left: -50px; /* Proportionally reduced overlap consistent with YouTube layout */
   pointer-events: none; /* Avoid blocking widget interactions */
 }
 
@@ -808,7 +849,7 @@ onBeforeUnmount(() => {
 
 /* Hover effect - vinyl slides out more when hovering over the player */
 .music-player-panel:hover .deezer-vinyl-wrapper {
-  transform: translateX(30px); /* Consistent with YouTube hover effect */
+  transform: translateX(15px); /* Proportionally reduced hover effect for smaller size */
   transition: transform 0.4s ease-out;
 }
 
@@ -853,18 +894,18 @@ onBeforeUnmount(() => {
   }
   
   .music-player-panel {
-    width: 320px; /* Adjusted for mobile - smaller square widgets */
+    width: 180px; /* Proportionally reduced for mobile */
   }
   
   .album-sleeve {
-    width: 220px; /* Reduced square on mobile */
-    height: 220px;
+    width: 110px; /* Proportionally reduced square on mobile */
+    height: 110px;
   }
   
   .vinyl-wrapper {
-    width: 220px;
-    height: 220px;
-    margin-left: -75px;
+    width: 110px;
+    height: 110px;
+    margin-left: -35px;
   }
   
   /* Adjust Deezer layout for mobile */
@@ -874,14 +915,14 @@ onBeforeUnmount(() => {
   }
   
   .deezer-vinyl-wrapper {
-    width: 220px;
-    height: 220px;
+    width: 110px;
+    height: 110px;
     margin-left: 0;
   }
   
   .album-cover-frame .embedded-player iframe {
-    width: 220px;
-    height: 220px;
+    width: 110px;
+    height: 110px;
   }
 }
 
@@ -892,18 +933,18 @@ onBeforeUnmount(() => {
   }
   
   .music-player-panel {
-    width: 280px; /* Further reduced for small screens */
+    width: 160px; /* Proportionally reduced for small screens */
   }
   
   .album-sleeve {
-    width: 200px;
-    height: 200px;
+    width: 100px;
+    height: 100px;
   }
   
   .vinyl-wrapper {
-    width: 200px;
-    height: 200px;
-    margin-left: -70px;
+    width: 100px;
+    height: 100px;
+    margin-left: -30px;
   }
   
   .player-header {
@@ -916,13 +957,13 @@ onBeforeUnmount(() => {
   
   /* Mobile Deezer layout adjustments */
   .deezer-vinyl-wrapper {
-    width: 200px;
-    height: 200px;
+    width: 100px;
+    height: 100px;
   }
   
   .album-cover-frame .embedded-player iframe {
-    width: 200px;
-    height: 200px;
+    width: 100px;
+    height: 100px;
   }
 }
 </style>
