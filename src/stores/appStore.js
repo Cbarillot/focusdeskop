@@ -335,6 +335,11 @@ const themes = ref({
   const musicUrl = ref('') // Support for Spotify, Deezer, YouTube, SoundCloud URLs
   const musicPlatform = ref('') // spotify, deezer, youtube, soundcloud
   const musicError = ref('')
+  
+  // New state for the refactored music player workflow
+  const musicSelected = ref(false) // Track if user has selected and clicked play on music
+  const selectedMusicSource = ref(null) // Store the selected music source details
+  const localAudioFile = ref(null) // Store local audio file details
   const soundscapes = ref({
     rain: { enabled: false, volume: 0.5 },
     forest: { enabled: false, volume: 0.5 },
@@ -705,6 +710,43 @@ const themes = ref({
     musicPlaying.value = !musicPlaying.value
   }
 
+  // New functions for the refactored music player workflow
+  function playSelectedMusic(source) {
+    // Set the selected music source and mark as selected
+    selectedMusicSource.value = source
+    musicSelected.value = true
+    musicPlaying.value = true
+    
+    // Set appropriate URL and platform based on source type
+    if (source.type === 'youtube') {
+      setMusicUrl(source.url)
+      currentTrack.value = source.title || source.name
+    } else if (source.type === 'spotify') {
+      setMusicUrl(source.url) 
+      currentTrack.value = source.title || source.name
+    } else if (source.type === 'deezer') {
+      setMusicUrl(source.url)
+      currentTrack.value = source.title || source.name
+    } else if (source.type === 'local') {
+      localAudioFile.value = source
+      currentTrack.value = source.name
+      musicUrl.value = source.url // for local files, this will be a blob URL
+      musicPlatform.value = 'local'
+    }
+  }
+
+  function resetMusicSelection() {
+    // Reset all music selection state
+    musicSelected.value = false
+    selectedMusicSource.value = null
+    localAudioFile.value = null
+    musicPlaying.value = false
+    currentTrack.value = null
+    musicUrl.value = ''
+    musicPlatform.value = ''
+    musicError.value = ''
+  }
+
   // Fullscreen management
   function toggleFullscreen() {
     if (typeof document !== 'undefined') {
@@ -806,6 +848,9 @@ const themes = ref({
     musicUrl,
     musicPlatform,
     musicError,
+    musicSelected,
+    selectedMusicSource,
+    localAudioFile,
     soundscapes,
     // Playlist data
     deezerPlaylists,
@@ -847,6 +892,8 @@ const themes = ref({
     playYouTubePlaylist,
     stopMusic,
     toggleMusicPlayback,
+    playSelectedMusic,
+    resetMusicSelection,
     toggleFullscreen,
     updatePomodoroTime,
     updateShortBreakTime,

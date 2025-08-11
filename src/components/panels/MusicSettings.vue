@@ -305,16 +305,20 @@ function extractYouTubeId(url) {
 function loadPreset(videoId) {
   const preset = youtubePresets.find(p => p.id === videoId)
   if (preset) {
-    // Mettre à jour l'URL dans le store (cela déclenchera la mise à jour du lecteur principal)
-    store.setMusicUrl(preset.url)
-    currentVideoId.value = videoId
-    youtubeUrl.value = preset.url
+    // Create the source object for the new workflow
+    const source = {
+      type: 'youtube',
+      url: preset.url,
+      title: preset.title,
+      platform: 'youtube'
+    }
     
-    // Forcer le rechargement dans le lecteur principal
-    if (window.ytPlayer && typeof window.ytPlayer.loadVideoById === 'function') {
-      window.ytPlayer.loadVideoById(videoId)
-      // Démarrer la lecture automatiquement
-      window.ytPlayer.playVideo()
+    // Send to the front page player via the store
+    store.playSelectedMusic(source)
+    
+    // Close the sidebar
+    if (store.sidebarOpen) {
+      store.toggleSidebar()
     }
   }
 }
@@ -339,16 +343,47 @@ function togglePlayback(event) {
 function loadLocalMusic(event) {
   const file = event.target.files[0]
   if (file) {
-    localAudioSrc.value = URL.createObjectURL(file)
-    store.currentTrack = file.name
-    store.musicPlaying = true
+    const fileUrl = URL.createObjectURL(file)
+    
+    // Create the source object for the new workflow
+    const source = {
+      type: 'local',
+      url: fileUrl,
+      title: file.name,
+      name: file.name,
+      platform: 'local'
+    }
+    
+    // Send to the front page player via the store
+    store.playSelectedMusic(source)
+    
+    // Close the sidebar
+    if (store.sidebarOpen) {
+      store.toggleSidebar()
+    }
   }
 }
 
 // Fonctions pour Deezer
 function openDeezerPlaylist(url) {
-  // Ouvrir la playlist Deezer dans un nouvel onglet
-  window.open(url, '_blank', 'noopener,noreferrer')
+  // Find the playlist details for a better title
+  const playlist = store.deezerPlaylists.find(p => p.url === url)
+  
+  // Create the source object for the new workflow
+  const source = {
+    type: 'deezer',
+    url: url,
+    title: playlist?.name || 'Deezer Playlist',
+    platform: 'deezer'
+  }
+  
+  // Send to the front page player via the store
+  store.playSelectedMusic(source)
+  
+  // Close the sidebar  
+  if (store.sidebarOpen) {
+    store.toggleSidebar()
+  }
 }
 </script>
 

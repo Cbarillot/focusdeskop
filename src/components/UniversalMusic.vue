@@ -23,6 +23,18 @@
         >
           {{ loading ? 'Chargement...' : 'Charger' }}
         </button>
+        
+        <!-- Play button - sends music to front page player -->
+        <button 
+          v-if="store.musicUrl && !loading"
+          class="play-btn"
+          @click="playMusic"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
+          </svg>
+          Play
+        </button>
       </div>
 
       <!-- Platform Indicator -->
@@ -274,6 +286,41 @@ async function loadMusic() {
   }
 }
 
+// New function to play selected music on the front page player
+function playMusic() {
+  if (!store.musicUrl) return
+  
+  // Create the source object based on the platform
+  const source = {
+    type: store.musicPlatform,
+    url: store.musicUrl,
+    title: getTrackTitle(),
+    platform: store.musicPlatform
+  }
+  
+  // Send to the front page player via the store
+  store.playSelectedMusic(source)
+  
+  // Close the sidebar
+  if (store.sidebarOpen) {
+    store.toggleSidebar()
+  }
+}
+
+function getTrackTitle() {
+  // Try to extract a meaningful title from the URL or return a generic one
+  if (store.musicPlatform === 'youtube') {
+    return 'YouTube Music'
+  } else if (store.musicPlatform === 'spotify') {
+    return 'Spotify Track'
+  } else if (store.musicPlatform === 'deezer') {
+    return 'Deezer Track'  
+  } else if (store.musicPlatform === 'soundcloud') {
+    return 'SoundCloud Track'
+  }
+  return 'Music Track'
+}
+
 function openExternal() {
   if (store.musicUrl) {
     window.open(store.musicUrl, '_blank', 'noopener,noreferrer')
@@ -467,6 +514,26 @@ export default {
 .load-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.play-btn {
+  padding: 12px 20px;
+  border-radius: var(--border-radius-md);
+  background: rgba(0, 191, 165, 0.8);
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.play-btn:hover {
+  background: rgba(0, 191, 165, 1);
+  transform: translateY(-1px);
 }
 
 /* Platform Indicator */

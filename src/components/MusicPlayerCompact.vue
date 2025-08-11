@@ -17,8 +17,18 @@
 
     <!-- Compact Music Player (always visible) -->
     <div class="music-player-panel">
-      <div class="player-content" @dblclick="openMusicSettings" title="Double-cliquez pour ouvrir les réglages musique">
-        <div class="vinyl-player">
+      <!-- Default state - no music selected -->
+      <div v-if="!store.musicSelected" class="player-content" @click="openMusicSettings" title="Cliquez pour ouvrir les réglages musique">
+        <div class="default-state">
+          <div class="default-message">let's play something !</div>
+          <div class="default-instruction">Click to select music</div>
+        </div>
+      </div>
+
+      <!-- Music selected and playing -->
+      <div v-else class="player-content">
+        <!-- YouTube Player -->
+        <div v-if="store.selectedMusicSource?.type === 'youtube'" class="vinyl-player">
           <div class="player-container">
             <div class="album-sleeve">
               <div class="sleeve-inner">
@@ -27,7 +37,7 @@
                   v-else 
                   class="yt-fallback" 
                   width="100%" height="100%" 
-                  src="https://www.youtube.com/embed/jfKfPfyJRdk?playsinline=1&controls=1&loop=1&playlist=jfKfPfyJRdk" 
+                  :src="getYouTubeEmbedUrl()"
                   title="YouTube video player" 
                   frameborder="0" 
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
@@ -46,19 +56,101 @@
           </div>
         </div>
 
-        <!-- Quick Playlists (kept minimal to avoid overlays) -->
-        <div v-if="store.youtubePlaylists?.length" class="quick-playlists">
-          <div class="playlist-title">Accès rapide</div>
-          <div class="playlist-buttons">
-            <button 
-              v-for="playlist in store.youtubePlaylists.slice(0, 2)"
-              :key="playlist.id"
-              class="playlist-btn"
-              @click="store.playYouTubePlaylist(playlist.id)"
-            >
-              {{ playlist.shortName || playlist.title?.substring(0, 8) + '...' }}
-            </button>
+        <!-- Local Audio Player -->
+        <div v-else-if="store.selectedMusicSource?.type === 'local'" class="vinyl-player">
+          <div class="player-container">
+            <div class="album-sleeve">
+              <div class="sleeve-inner">
+                <img 
+                  v-if="store.localAudioFile?.cover" 
+                  :src="store.localAudioFile.cover" 
+                  alt="Album cover"
+                  class="album-cover"
+                />
+                <div v-else class="default-cover">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 3V13.55L11.4 13.1C10.8 12.65 10 12.65 9.4 13.1L8 14.1V3H12ZM8 15.35L9.4 14.35C10 14.05 10.6 14.05 11.2 14.35L12 14.9V3H8V15.35ZM6 3V17L10.5 14L15 17V3H6Z" fill="currentColor"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            
+            <div :class="['vinyl-wrapper', { 'is-playing': isPlaying }]">
+              <img 
+                :class="['vinyl-record', { 'is-spinning': isPlaying }]" 
+                src="/assets/icons/vinyle.png" 
+                alt="Disque vinyle"
+              />
+            </div>
           </div>
+          
+          <!-- Custom Audio Controls -->
+          <div class="audio-controls">
+            <audio 
+              ref="audioPlayer"
+              :src="store.localAudioFile?.url"
+              @loadedmetadata="onAudioLoaded"
+              @timeupdate="onTimeUpdate"
+              @ended="onAudioEnded"
+            ></audio>
+            
+            <div class="control-buttons">
+              <button @click="previousTrack" class="control-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 6V18L18 12L6 6Z" fill="currentColor"/>
+                  <rect x="4" y="6" width="2" height="12" fill="currentColor"/>
+                </svg>
+              </button>
+              
+              <button @click="toggleLocalPlayback" class="control-btn play-btn">
+                <svg v-if="!isPlaying" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
+                </svg>
+                <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="6" y="4" width="4" height="16" fill="currentColor"/>
+                  <rect x="14" y="4" width="4" height="16" fill="currentColor"/>
+                </svg>
+              </button>
+              
+              <button @click="nextTrack" class="control-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 18L18 12L6 6V18Z" fill="currentColor"/>
+                  <rect x="18" y="6" width="2" height="12" fill="currentColor"/>
+                </svg>
+              </button>
+            </div>
+            
+            <div class="volume-control">
+              <input 
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                v-model="localVolume"
+                @input="updateLocalVolume"
+                class="volume-slider"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Spotify/Deezer Embedded Player -->
+        <div v-else-if="store.selectedMusicSource?.type === 'spotify' || store.selectedMusicSource?.type === 'deezer'" class="embedded-player">
+          <iframe 
+            :src="getEmbedUrl()"
+            width="100%" 
+            height="152"
+            frameborder="0"
+            allowtransparency="true"
+            allow="encrypted-media"
+            loading="lazy"
+          ></iframe>
+        </div>
+
+        <!-- Track Info -->
+        <div class="current-track">
+          <div class="track-name">{{ store.currentTrack }}</div>
+          <div class="track-status">{{ getTrackStatus() }}</div>
         </div>
       </div>
     </div>
@@ -72,6 +164,8 @@ import { useAppStore } from '../stores/appStore'
 const store = useAppStore()
 const isPlaying = ref(false)
 const ytReady = ref(false)
+const localVolume = ref(0.7)
+const audioPlayer = ref(null)
 let ytPlayer = null
 
 function openMusicSettings() {
@@ -79,26 +173,28 @@ function openMusicSettings() {
   if (!store.sidebarOpen) store.toggleSidebar()
 }
 
+// YouTube Player Functions
 function createYouTubePlayer() {
   if (!window.YT || !window.YT.Player) return
   if (ytPlayer) return
   
+  const videoId = extractYouTubeId(store.selectedMusicSource?.url) || 'jfKfPfyJRdk'
+  
   ytPlayer = new window.YT.Player('youtube-player', {
     height: '100%',
     width: '100%',
-    videoId: getCurrentYouTubeId() || 'jfKfPfyJRdk',
+    videoId: videoId,
     playerVars: { 
       playsinline: 1, 
       controls: 1, 
       loop: 1, 
-      playlist: 'jfKfPfyJRdk',
+      playlist: videoId,
       enablejsapi: 1,
       origin: window.location.origin
     },
     events: {
       onReady: () => {
         console.log('YouTube Player Ready')
-        // Expose the player globally for other components to use
         window.ytPlayer = ytPlayer
         ytReady.value = true
       },
@@ -134,42 +230,134 @@ function loadYouTubeAPI() {
   }
 }
 
-// Always load the API on mount (player is always visible)
+function getYouTubeEmbedUrl() {
+  if (!store.selectedMusicSource?.url) return ''
+  const videoId = extractYouTubeId(store.selectedMusicSource.url)
+  return `https://www.youtube.com/embed/${videoId}?playsinline=1&controls=1&loop=1&playlist=${videoId}`
+}
+
+function extractYouTubeId(url) {
+  if (!url) return ''
+  const match = url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/)
+  return match ? match[1] : ''
+}
+
+// Local Audio Functions
+function toggleLocalPlayback() {
+  if (!audioPlayer.value) return
+  
+  if (isPlaying.value) {
+    audioPlayer.value.pause()
+    isPlaying.value = false
+    store.musicPlaying = false
+  } else {
+    audioPlayer.value.play()
+    isPlaying.value = true
+    store.musicPlaying = true
+  }
+}
+
+function updateLocalVolume() {
+  if (audioPlayer.value) {
+    audioPlayer.value.volume = localVolume.value
+  }
+}
+
+function onAudioLoaded() {
+  if (audioPlayer.value) {
+    audioPlayer.value.volume = localVolume.value
+  }
+}
+
+function onTimeUpdate() {
+  // Update progress if needed
+}
+
+function onAudioEnded() {
+  isPlaying.value = false
+  store.musicPlaying = false
+}
+
+function previousTrack() {
+  // Implement previous track logic if needed
+  console.log('Previous track')
+}
+
+function nextTrack() {
+  // Implement next track logic if needed
+  console.log('Next track')
+}
+
+// Embedded Player Functions
+function getEmbedUrl() {
+  if (!store.selectedMusicSource?.url) return ''
+  
+  if (store.selectedMusicSource.type === 'spotify') {
+    // Convert Spotify URL to embed format
+    const match = store.selectedMusicSource.url.match(/(?:track|playlist|album)\/([a-zA-Z0-9]+)/)
+    if (match) {
+      const id = match[1]
+      const type = store.selectedMusicSource.url.includes('track') ? 'track' :
+                   store.selectedMusicSource.url.includes('playlist') ? 'playlist' : 'album'
+      return `https://open.spotify.com/embed/${type}/${id}?utm_source=generator`
+    }
+  } else if (store.selectedMusicSource.type === 'deezer') {
+    // Handle Deezer embed (may need external link due to limitations)
+    return store.selectedMusicSource.url
+  }
+  
+  return store.selectedMusicSource.url
+}
+
+// Status Functions
+function getTrackStatus() {
+  if (!store.selectedMusicSource) return ''
+  
+  if (isPlaying.value) {
+    return 'Playing'
+  } else {
+    return 'Paused'
+  }
+}
+
+// Watch for music selection changes
+watch(() => store.selectedMusicSource, (newSource) => {
+  if (newSource && newSource.type === 'youtube') {
+    ytReady.value = false
+    if (ytPlayer) {
+      try {
+        ytPlayer.destroy()
+      } catch (e) {
+        console.warn('Error destroying YouTube player:', e)
+      }
+      ytPlayer = null
+    }
+    setTimeout(() => {
+      loadYouTubeAPI()
+    }, 100)
+  }
+}, { deep: true })
+
+watch(() => store.musicPlaying, (playing) => {
+  isPlaying.value = playing
+})
+
 onMounted(() => {
-  loadYouTubeAPI()
+  // Only load YouTube API if we have a YouTube source
+  if (store.selectedMusicSource?.type === 'youtube') {
+    loadYouTubeAPI()
+  }
 })
 
 onBeforeUnmount(() => {
-  try { ytPlayer && ytPlayer.destroy && ytPlayer.destroy() } catch {}
-  ytPlayer = null
-})
-
-// --- Bind to store.musicUrl so a pasted YouTube URL loads immediately ---
-function getCurrentYouTubeId() {
-  const url = store.musicUrl || ''
-  // Prefer store.extractYouTubeId if available
-  try {
-    if (store.extractYouTubeId) {
-      return store.extractYouTubeId(url)
+  try { 
+    if (ytPlayer && ytPlayer.destroy) {
+      ytPlayer.destroy() 
     }
-  } catch {}
-  // Fallback regex
-  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/)
-  return m ? m[1] : ''
-}
-
-watch(() => store.musicUrl, (newUrl) => {
-  if (!newUrl || !ytPlayer || !window.YT) return
-  const id = getCurrentYouTubeId()
-  if (id) {
-    try {
-      if (typeof ytPlayer.loadVideoById === 'function') {
-        ytPlayer.loadVideoById(id)
-      } else if (typeof ytPlayer.cueVideoById === 'function') {
-        ytPlayer.cueVideoById(id)
-      }
-    } catch {}
+  } catch (e) {
+    console.warn('Error destroying YouTube player:', e)
   }
+  ytPlayer = null
 })
 </script>
 
@@ -279,6 +467,32 @@ watch(() => store.musicUrl, (newUrl) => {
   padding: 16px;
 }
 
+/* Default state styles */
+.default-state {
+  text-align: center;
+  padding: 40px 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.default-state:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.default-message {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.default-instruction {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  font-style: italic;
+}
+
 /* Vinyl player layout (compact) */
 .vinyl-player {
   display: flex;
@@ -352,6 +566,112 @@ watch(() => store.musicUrl, (newUrl) => {
   border: 0;
 }
 
+/* Album cover for local audio */
+.album-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.default-cover {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  border-radius: 6px;
+}
+
+/* Audio controls for local files */
+.audio-controls {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.control-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.control-btn {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  transform: scale(1.05);
+}
+
+.play-btn {
+  width: 40px;
+  height: 40px;
+  background: rgba(0, 191, 165, 0.2);
+  border-color: rgba(0, 191, 165, 0.4);
+}
+
+.play-btn:hover {
+  background: rgba(0, 191, 165, 0.3);
+  border-color: rgba(0, 191, 165, 0.6);
+}
+
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+}
+
+.volume-slider {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: rgba(0, 191, 165, 1);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: rgba(0, 191, 165, 1);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+/* Embedded player styles */
+.embedded-player {
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
 .current-track {
   margin-bottom: 16px;
   text-align: center;
@@ -378,85 +698,6 @@ watch(() => store.musicUrl, (newUrl) => {
   text-align: center;
   margin-bottom: 16px;
   font-style: italic;
-}
-
-.music-controls {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-  justify-content: center;
-}
-
-.control-btn {
-  width: 36px;
-  height: 36px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  color: rgba(255, 255, 255, 0.8);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.control-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  transform: scale(1.05);
-}
-
-.control-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.settings-btn:hover:not(:disabled) {
-  background: rgba(0, 191, 165, 0.3);
-  border-color: rgba(0, 191, 165, 0.5);
-}
-
-.quick-playlists {
-  border-top: 1px solid rgba(255, 255, 255, 0.25);
-  padding-top: 12px;
-}
-
-.playlist-title {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-  text-align: center;
-}
-
-.playlist-buttons {
-  display: flex;
-  gap: 6px;
-  justify-content: center;
-}
-
-.playlist-btn {
-  padding: 4px 8px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 10px;
-  font-weight: 500;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s ease;
-  max-width: 60px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.playlist-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  transform: scale(1.05);
 }
 
 /* Responsive design */
