@@ -1,14 +1,67 @@
 <template>
   <div class="panel-section">
-    <h3>Themes</h3>
-    <p class="section-description">Choose from beautiful backgrounds to enhance your focus experience.</p>
+    <!-- Section de couleur du thème -->
+    <div class="theme-color-section">
+      <h3 class="section-title accent-title">Couleur d'accentuation</h3>
+      
+      <div class="color-picker-container">
+        <div class="custom-color-picker">
+          <h4 class="color-picker-label">Couleur personnalisée</h4>
+          <div class="color-input-wrapper">
+            <input 
+              type="color" 
+              v-model="customColor" 
+              @change="updateThemeColor"
+              class="color-input"
+            >
+            <span class="color-value">{{ customColor.toUpperCase() }}</span>
+          </div>
+        </div>
+        
+        <div class="preset-colors">
+          <h4 class="preset-colors-label">Palettes prédéfinies</h4>
+          <div class="color-presets-grid">
+            <button 
+              v-for="color in colorPresets" 
+              :key="color"
+              :style="{ 
+                backgroundColor: color,
+                border: customColor === color ? `2px solid ${getContrastColor(color)}` : '2px solid transparent'
+              }"
+              class="color-preset"
+              @click="setThemeColor(color)"
+              :title="getColorName(color)"
+            >
+              <span v-if="customColor === color" class="check-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20 6L9 17L4 12" :stroke="getContrastColor(color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
     
     <div class="theme-categories">
+      <!-- Gradients & Colors Section -->
       <div class="category-section">
-        <h4 class="category-title">🎨 Gradients & Colors</h4>
-        <div class="themes-grid">
+        <div 
+          class="category-toggle" 
+          role="button" 
+          tabindex="0"
+          @click="toggleSection('gradients')" 
+          @keydown.enter="toggleSection('gradients')" 
+          @keydown.space.prevent="toggleSection('gradients')"
+        >
+          <h4 class="category-title">🎨 Dégradés & Couleurs</h4>
+          <span class="chevron" :class="{ open: sectionOpen.gradients }">▾</span>
+        </div>
+        
+        <div class="themes-grid" v-show="sectionOpen.gradients">
           <div
             v-for="(theme, key) in getThemesByCategory('gradients')"
+            v-if="theme"
             :key="key"
             class="theme-card"
             :class="{ active: store.currentTheme === key }"
@@ -51,11 +104,152 @@
         </div>
       </div>
 
+      <!-- Animated Backgrounds Section -->
       <div class="category-section">
-        <h4 class="category-title">🖼️ Images</h4>
-        <div class="themes-grid">
+        <div 
+          class="category-toggle" 
+          role="button" 
+          tabindex="0"
+          @click="toggleSection('animated')" 
+          @keydown.enter="toggleSection('animated')" 
+          @keydown.space.prevent="toggleSection('animated')"
+        >
+          <h4 class="category-title">🎬 Arrière-plans animés</h4>
+          <span class="chevron" :class="{ open: sectionOpen.animated }">▾</span>
+        </div>
+        
+        <div v-show="sectionOpen.animated">
+          <!-- Nature Subcategory -->
+          <h5 class="subcategory-title">🌿 Nature</h5>
+          <div class="themes-grid">
+            <div
+              v-for="(theme, key) in getThemesByCategory('nature')"
+              v-if="theme"
+              :key="key"
+              class="theme-card"
+              :class="{ active: store.currentTheme === key }"
+              @click="selectTheme(key)"
+            >
+              <div class="theme-preview" @mouseenter="playPreview" @mouseleave="pausePreview">
+                <video
+                  :src="theme.value"
+                  muted
+                  loop
+                  class="theme-video"
+                  :data-theme-key="key"
+                  @error="handleImageError"
+                  preload="none"
+                ></video>
+                <div class="theme-type-badge video">
+                  🌿
+                </div>
+                <div class="video-play-indicator">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="theme-info">
+                <h4 class="theme-name">{{ theme.name }}</h4>
+                <p class="theme-type">Animation Nature</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lofi Subcategory -->
+          <h5 class="subcategory-title">🎵 Lofi</h5>
+          <div class="themes-grid">
+            <div
+              v-for="(theme, key) in getThemesByCategory('lofi')"
+              v-if="theme"
+              :key="key"
+              class="theme-card"
+              :class="{ active: store.currentTheme === key }"
+              @click="selectTheme(key)"
+            >
+              <div class="theme-preview" @mouseenter="playPreview" @mouseleave="pausePreview">
+                <video
+                  :src="theme.value"
+                  muted
+                  loop
+                  class="theme-video"
+                  :data-theme-key="key"
+                  @error="handleImageError"
+                  preload="none"
+                ></video>
+                <div class="theme-type-badge video">
+                  🎵
+                </div>
+                <div class="video-play-indicator">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="theme-info">
+                <h4 class="theme-name">{{ theme.name }}</h4>
+                <p class="theme-type">Animation Lofi</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Café Subcategory -->
+          <h5 class="subcategory-title">☕ Café</h5>
+          <div class="themes-grid">
+            <div
+              v-for="(theme, key) in getThemesByCategory('cafe')"
+              v-if="theme"
+              :key="key"
+              class="theme-card"
+              :class="{ active: store.currentTheme === key }"
+              @click="selectTheme(key)"
+            >
+              <div class="theme-preview" @mouseenter="playPreview" @mouseleave="pausePreview">
+                <video
+                  :src="theme.value"
+                  muted
+                  loop
+                  class="theme-video"
+                  :data-theme-key="key"
+                  @error="handleImageError"
+                  preload="none"
+                ></video>
+                <div class="theme-type-badge video">
+                  ☕
+                </div>
+                <div class="video-play-indicator">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="theme-info">
+                <h4 class="theme-name">{{ theme.name }}</h4>
+                <p class="theme-type">Animation Café</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Images Section -->
+      <div class="category-section">
+        <div 
+          class="category-toggle" 
+          role="button" 
+          tabindex="0"
+          @click="toggleSection('images')" 
+          @keydown.enter="toggleSection('images')" 
+          @keydown.space.prevent="toggleSection('images')"
+        >
+          <h4 class="category-title">🖼️ Images</h4>
+          <span class="chevron" :class="{ open: sectionOpen.images }">▾</span>
+        </div>
+        
+        <div class="themes-grid" v-show="sectionOpen.images">
           <div
             v-for="(theme, key) in getThemesByCategory('images')"
+            v-if="theme"
             :key="key"
             class="theme-card"
             :class="{ active: store.currentTheme === key }"
@@ -69,164 +263,208 @@
                 @error="handleImageError"
               />
               <div class="theme-type-badge" :class="theme.type">
-                🖼️
+                {{ getTypeBadge(theme.type) }}
               </div>
             </div>
             <div class="theme-info">
               <h4 class="theme-name">{{ theme.name }}</h4>
-              <p class="theme-type">Static Image</p>
+              <p class="theme-type">{{ getTypeLabel(theme.type) }}</p>
             </div>
           </div>
         </div>
       </div>
 
+      <!-- Animated Backgrounds Section -->
       <div class="category-section">
-        <h4 class="category-title">🎬 Animated Backgrounds</h4>
+        <div 
+          class="category-toggle" 
+          role="button" 
+          tabindex="0"
+          @click="toggleSection('animated')" 
+          @keydown.enter="toggleSection('animated')" 
+          @keydown.space.prevent="toggleSection('animated')"
+        >
+          <h4 class="category-title">🎬 Fond animés</h4>
+          <span class="chevron" :class="{ open: sectionOpen.animated }">▾</span>
+        </div>
         
-        <!-- Nature Subcategory -->
-        <h5 class="subcategory-title">🌿 Nature</h5>
-        <div class="themes-grid">
+        <div class="themes-grid" v-show="sectionOpen.animated">
           <div
-            v-for="(theme, key) in getThemesByCategory('nature')"
+            v-for="(theme, key) in getThemesByCategory('animated')"
+            v-if="theme"
             :key="key"
             class="theme-card"
             :class="{ active: store.currentTheme === key }"
             @click="selectTheme(key)"
           >
-            <div class="theme-preview" @mouseenter="playPreview" @mouseleave="pausePreview">
-              <video
-                :src="theme.value"
-                muted
-                loop
-                class="theme-video"
-                :data-theme-key="key"
-                @error="handleImageError"
-                preload="none"
-              ></video>
-              <div class="theme-type-badge video">
-                🌿
+            <div class="theme-preview">
+              <div
+                v-if="theme.type === 'canvas'"
+                class="canvas-preview"
+                :style="{ background: getCanvasPreviewGradient(theme.colors) }"
+              >
+                <div class="canvas-indicator">✨</div>
               </div>
-              <div class="video-play-indicator">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
-                </svg>
+              <div
+                v-else-if="theme.type === 'animated-gradient'"
+                class="animated-gradient-preview"
+                :style="{ background: getCanvasPreviewGradient(theme.colors) }"
+              >
+                <div class="animated-indicator">⚡</div>
+              </div>
+              <img
+                v-else
+                :src="getPreviewImage(theme)"
+                :alt="theme.name"
+                class="theme-image"
+                @error="handleImageError"
+              />
+              <div class="theme-type-badge" :class="theme.type">
+                {{ getTypeBadge(theme.type) }}
               </div>
             </div>
             <div class="theme-info">
               <h4 class="theme-name">{{ theme.name }}</h4>
-              <p class="theme-type">Nature Animation</p>
+              <p class="theme-type">{{ getTypeLabel(theme.type) }}</p>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Lofi Subcategory -->
-        <h5 class="subcategory-title">🎵 Lofi</h5>
-        <div class="themes-grid">
-          <div
-            v-for="(theme, key) in getThemesByCategory('lofi')"
-            :key="key"
-            class="theme-card"
-            :class="{ active: store.currentTheme === key }"
-            @click="selectTheme(key)"
-          >
-            <div class="theme-preview" @mouseenter="playPreview" @mouseleave="pausePreview">
-              <video
-                :src="theme.value"
-                muted
-                loop
-                class="theme-video"
-                :data-theme-key="key"
-                @error="handleImageError"
-                preload="none"
-              ></video>
-              <div class="theme-type-badge video">
-                🎵
-              </div>
-              <div class="video-play-indicator">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
-                </svg>
-              </div>
-            </div>
-            <div class="theme-info">
-              <h4 class="theme-name">{{ theme.name }}</h4>
-              <p class="theme-type">Lofi Animation</p>
-            </div>
-          </div>
+      <!-- YouTube Background Section -->
+      <div class="category-section">
+        <div 
+          class="category-toggle" 
+          role="button" 
+          tabindex="0"
+          @click="toggleSection('youtube')" 
+          @keydown.enter="toggleSection('youtube')" 
+          @keydown.space.prevent="toggleSection('youtube')"
+        >
+          <h4 class="category-title">▶️ YouTube</h4>
+          <span class="chevron" :class="{ open: sectionOpen.youtube }">▾</span>
         </div>
-
-        <!-- Café Subcategory -->
-        <h5 class="subcategory-title">☕ Café</h5>
-        <div class="themes-grid">
-          <div
-            v-for="(theme, key) in getThemesByCategory('cafe')"
-            :key="key"
-            class="theme-card"
-            :class="{ active: store.currentTheme === key }"
-            @click="selectTheme(key)"
-          >
-            <div class="theme-preview" @mouseenter="playPreview" @mouseleave="pausePreview">
-              <video
-                :src="theme.value"
-                muted
-                loop
-                class="theme-video"
-                :data-theme-key="key"
-                @error="handleImageError"
-                preload="none"
-              ></video>
-              <div class="theme-type-badge video">
-                ☕
-              </div>
-              <div class="video-play-indicator">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
-                </svg>
-              </div>
-            </div>
-            <div class="theme-info">
-              <h4 class="theme-name">{{ theme.name }}</h4>
-              <p class="theme-type">Café Animation</p>
-            </div>
+        
+        <div class="youtube-section" v-show="sectionOpen.youtube">
+          <div class="youtube-input-container">
+            <input
+              type="text"
+              v-model="youtubeUrl"
+              placeholder="Coller l'URL YouTube ici"
+              class="youtube-input"
+              @keydown.enter="setYoutubeBackground"
+            />
+            <button 
+              class="youtube-button"
+              @click="setYoutubeBackground"
+              :disabled="!youtubeUrl"
+            >
+              Appliquer
+            </button>
           </div>
+          <p class="youtube-hint">Collez l'URL d'une vidéo YouTube pour l'utiliser comme fond d'écran</p>
+        </div>
+      </div>
+
+      <!-- Custom Gradient Section -->
+      <div class="category-section">
+        <div 
+          class="category-toggle" 
+          role="button" 
+          tabindex="0"
+          @click="toggleSection('customGradient')" 
+          @keydown.enter="toggleSection('customGradient')" 
+          @keydown.space.prevent="toggleSection('customGradient')"
+        >
+          <h4 class="category-title">🌈 Dégradé personnalisé</h4>
+          <span class="chevron" :class="{ open: sectionOpen.customGradient }">▾</span>
+        </div>
+        
+        <div class="custom-gradient-section" v-show="sectionOpen.customGradient">
+          <div class="gradient-controls">
+            <div 
+              v-for="(color, index) in customGradientColors" 
+              :key="index"
+              class="color-picker-container"
+            >
+              <input 
+                type="color" 
+                v-model="customGradientColors[index]"
+                @input="updateCustomGradient"
+                class="color-picker"
+              >
+              <button 
+                v-if="index > 1"
+                @click="removeColor(index)"
+                class="remove-color"
+                title="Supprimer cette couleur"
+              >
+                ×
+              </button>
+            </div>
+            <button 
+              v-if="customGradientColors.length < 5"
+              @click="addColor"
+              class="add-color"
+              title="Ajouter une couleur"
+            >
+              +
+            </button>
+          </div>
+          <div 
+            class="gradient-preview"
+            :style="{ background: customGradientPreview }"
+          ></div>
+          <button 
+            @click="applyCustomGradient"
+            class="apply-gradient"
+          >
+            Appliquer le dégradé
+          </button>
         </div>
       </div>
     </div>
 
+    <!-- YouTube Background Section -->
     <div class="setting-group">
-      <h4>Custom YouTube Background</h4>
-      <p class="setting-description">Add any YouTube video as your background. Perfect for lofi music, nature sounds, or ambient videos.</p>
-
-      <div class="youtube-input-section">
-        <div class="input-group">
+      <div 
+        class="category-toggle" 
+        role="button" 
+        tabindex="0"
+        @click="toggleSection('youtube')" 
+        @keydown.enter="toggleSection('youtube')" 
+        @keydown.space.prevent="toggleSection('youtube')"
+      >
+        <h4 class="category-title">📺 YouTube Background</h4>
+        <span class="chevron" :class="{ open: sectionOpen.youtube }">▾</span>
+      </div>
+      
+      <div v-show="sectionOpen.youtube" class="youtube-section">
+        <p class="setting-description">Ajoutez n'importe quelle vidéo YouTube comme arrière-plan. Parfait pour la musique lofi, les sons de la nature ou les vidéos d'ambiance.</p>
+        
+        <div class="youtube-input-section">
           <input
             v-model="youtubeUrl"
-            type="url"
-            placeholder="Paste YouTube URL here (e.g., https://youtu.be/jfKfPfyJRdk)"
+            type="text"
+            placeholder="https://www.youtube.com/watch?v=..."
             class="youtube-input"
             @keyup.enter="addYouTubeBackground"
           />
-          <button
-            @click="addYouTubeBackground"
-            class="add-youtube-btn"
-            :disabled="!youtubeUrl.trim()"
-          >
-            Add Background
+          <button class="youtube-button" @click="addYouTubeBackground">
+            Ajouter
           </button>
         </div>
-
-        <div v-if="youtubeError" class="error-message">
-          {{ youtubeError }}
-        </div>
-
+        
+        <p v-if="youtubeError" class="youtube-error">{{ youtubeError }}</p>
+        
         <div class="youtube-examples">
-          <h5>Popular Ambient Videos:</h5>
-          <div class="example-links">
+          <p class="youtube-hint">Exemples rapides :</p>
+          <div class="youtube-examples-grid">
             <button
               v-for="example in youtubeExamples"
               :key="example.id"
+              class="youtube-example"
               @click="useExampleVideo(example.url)"
-              class="example-btn"
             >
               {{ example.title }}
             </button>
@@ -234,111 +472,84 @@
         </div>
       </div>
     </div>
-
-    <div class="setting-group">
-      <h4>Custom Animated Gradient</h4>
-      <p class="setting-description">Create your own animated gradient background with custom colors.</p>
-
-      <div class="gradient-customizer">
-        <div class="color-inputs">
-          <div
-            v-for="(color, index) in gradientColors"
-            :key="index"
-            class="color-input-group"
-          >
-            <label class="color-label">Color {{ index + 1 }}</label>
-            <input
-              type="color"
-              :value="color"
-              @input="updateGradientColor(index, $event.target.value)"
-              class="color-picker"
-            />
-          </div>
-        </div>
-
-        <div class="gradient-preview">
-          <div class="preview-container" :style="getGradientPreviewStyle()">
-            <span class="preview-text">Preview</span>
-          </div>
-        </div>
-
-        <div class="gradient-actions">
-          <button @click="applyCustomGradient" class="apply-gradient-btn">
-            Apply Gradient Background
-          </button>
-          <button @click="resetToDefaults" class="reset-btn">
-            Reset to Default Colors
-          </button>
-        </div>
-
-        <div class="preset-gradients">
-          <h5>Quick Presets:</h5>
-          <div class="preset-buttons">
-            <button
-              v-for="preset in gradientPresets"
-              :key="preset.name"
-              @click="applyPreset(preset.colors)"
-              class="preset-btn"
-              :style="{ background: `linear-gradient(45deg, ${preset.colors.join(', ')})` }"
-            >
-              {{ preset.name }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="setting-group">
-      <h4>Display Settings</h4>
-      
-      <div class="setting-item">
-        <label class="setting-label">Overlay opacity</label>
-        <div class="slider-container">
-          <input 
-            type="range" 
-            min="0" 
-            max="0.8" 
-            step="0.1" 
-            v-model="overlayOpacity" 
-            @input="updateOverlay"
-            class="slider"
-          />
-          <span class="slider-value">{{ Math.round(overlayOpacity * 100) }}%</span>
-        </div>
-      </div>
-      
-      <div class="setting-item">
-        <label class="setting-label">Auto-change themes</label>
-        <label class="toggle-switch">
-          <input type="checkbox" v-model="autoChangeThemes" />
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      
-      <div class="setting-item" v-if="autoChangeThemes">
-        <label class="setting-label">Change interval</label>
-        <select v-model="changeInterval" class="select-input">
-          <option value="hour">Every hour</option>
-          <option value="session">Every session</option>
-          <option value="day">Daily</option>
-        </select>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useAppStore } from '../../stores/appStore'
 
-const store = useAppStore()
+// Couleurs prédéfinies pour le thème
+const colorPresets = [
+  '#7C3AED', // Violet actuel
+  '#3B82F6', // Bleu
+  '#10B981', // Vert
+  '#F59E0B', // Orange
+  '#EF4444', // Rouge
+  '#8B5CF6', // Violet clair
+  '#EC4899'  // Rose
+]
 
-const overlayOpacity = ref(store.overlayOpacity)
-const autoChangeThemes = ref(false)
-const changeInterval = ref('hour')
+const customColor = ref('#7C3AED')
+
+// Mettre à jour la couleur du thème
+function setThemeColor(color) {
+  customColor.value = color
+  updateThemeColor()
+}
+
+// Mettre à jour la couleur CSS personnalisée
+function updateThemeColor() {
+  document.documentElement.style.setProperty('--accent-color', customColor.value)
+  // Sauvegarder la couleur dans le localStorage
+  localStorage.setItem('themeColor', customColor.value)
+}
+
+// Récupérer le nom de la couleur pour le tooltip
+function getColorName(color) {
+  const colors = {
+    '#7C3AED': 'Violet',
+    '#3B82F6': 'Bleu',
+    '#10B981': 'Vert',
+    '#F59E0B': 'Orange',
+    '#EF4444': 'Rouge',
+    '#8B5CF6': 'Violet clair',
+    '#EC4899': 'Rose',
+    '#000000': 'Noir',
+    '#FFFFFF': 'Blanc'
+  }
+  return colors[color] || 'Personnalisé'
+}
+
+// Obtenir une couleur de contraste (noir ou blanc) selon la luminosité
+const getContrastColor = (hexColor) => {
+  // Convertir la couleur hex en RVB
+  const r = parseInt(hexColor.slice(1, 3), 16) / 255;
+  const g = parseInt(hexColor.slice(3, 5), 16) / 255;
+  const b = parseInt(hexColor.slice(5, 7), 16) / 255;
+  
+  // Calculer la luminosité perçue (formule d'accessibilité WCAG)
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  
+  // Retourner noir pour les couleurs claires, blanc pour les couleurs foncées
+  return luminance > 0.5 ? '#000000' : '#FFFFFF';
+};
+
+// Charger la couleur sauvegardée au montage
+onMounted(() => {
+  const savedColor = localStorage.getItem('themeColor')
+  if (savedColor) {
+    customColor.value = savedColor
+    updateThemeColor()
+  }
+})
+
+const store = useAppStore()
 const youtubeUrl = ref('')
 const youtubeError = ref('')
+const customGradientColors = ref(['#4F46E5', '#7C3AED', '#EC4899', '#F59E0B'])
 
+// Exemples de vidéos YouTube
 const youtubeExamples = [
   {
     id: 1,
@@ -347,361 +558,313 @@ const youtubeExamples = [
   },
   {
     id: 2,
-    title: 'Rain Sounds',
-    url: 'https://www.youtube.com/watch?v=mPZkdNFkNps'
+    title: 'Medieval Village',
+    url: 'https://youtu.be/OxMQjlBq6zQ?list=PLnmUBkCASRfgk0jCglV0qQ_VhwiDHsVcY'
   },
   {
     id: 3,
-    title: 'Forest Ambience',
-    url: 'https://www.youtube.com/watch?v=xNN7iTA57jM'
+    title: 'Witchcore Ambience',
+    url: 'https://youtu.be/kfZyQ4K2vcw?list=PLnmUBkCASRfgk0jCglV0qQ_VhwiDHsVcY'
   },
   {
     id: 4,
-    title: 'Ocean Waves',
-    url: 'https://www.youtube.com/watch?v=V1Pl8CzNzCw'
+    title: 'Cosy fantasy village',
+    url: 'https://youtu.be/ywH2C6KVFno?list=PLnmUBkCASRfgk0jCglV0qQ_VhwiDHsVcY'
+  },
+  {
+    id: 5,
+    title: 'Peaceful Day at Hogwarts',
+    url: 'https://youtu.be/pQdTu0IeVho?list=PLnmUBkCASRfgk0jCglV0qQ_VhwiDHsVcY'
+  },
+  {
+    id: 6,
+    title: 'Cozy Magical Library',
+    url: 'https://youtu.be/Z1oUGthAzeo?list=RDZ1oUGthAzeo'
   }
 ]
 
-const gradientColors = ref([...store.customGradientColors])
+// Compute the gradient preview
+const customGradientPreview = computed(() => {
+  return `linear-gradient(45deg, ${customGradientColors.value.join(', ')})`
+})
 
-const gradientPresets = [
-  {
-    name: 'Lava Lamp',
-    colors: ['#DF437A', '#3d57d6', '#a117fd', '#ec634b']
-  },
-  {
-    name: 'Ocean Breeze',
-    colors: ['#00c9ff', '#92fe9d', '#00d4ff', '#4facfe']
-  },
-  {
-    name: 'Sunset',
-    colors: ['#ff9a9e', '#fecfef', '#fad0c4', '#f093fb']
-  },
-  {
-    name: 'Forest',
-    colors: ['#134e5e', '#71b280', '#42a5f5', '#478ed1']
-  },
-  {
-    name: 'Royal',
-    colors: ['#667eea', '#764ba2', '#f093fb', '#f5576c']
-  },
-  {
-    name: 'Fire',
-    colors: ['#ff416c', '#ff4b2b', '#ff6b6b', '#ee5a24']
-  }
-]
+// Collapsible sections state
+const sectionOpen = ref({
+  gradients: true,
+  images: true,
+  animated: true,
+  youtube: true,
+  customGradient: true,
+  gradientPresets: true,
+})
+
+function toggleSection(key) {
+  sectionOpen.value[key] = !sectionOpen.value[key]
+}
 
 function selectTheme(themeKey) {
   store.setTheme(themeKey)
 }
 
-function updateOverlay() {
-  store.overlayOpacity = parseFloat(overlayOpacity.value)
-}
-
 function getPreviewImage(theme) {
-  // Use authentic Flocus preview images
-  return theme.preview || theme.value
+  if (theme.preview) return theme.preview
+  if (theme.type === 'color' || theme.type === 'gradient') return ''
+  return theme.value
 }
 
 function getCanvasPreviewGradient(colors) {
-  if (!colors || colors.length < 2) return 'linear-gradient(45deg, #8B5CF6, #EC4899)'
-  return `radial-gradient(circle at 30% 40%, ${colors[0]}40 0%, ${colors[1]}40 25%, ${colors[2]}40 50%, ${colors[3] || colors[0]}40 100%)`
+  if (!colors || !colors.length) return 'linear-gradient(45deg, #ff9a9e, #fad0c4)'
+  return `linear-gradient(45deg, ${colors.join(', ')})`
 }
 
 function getTypeBadge(type) {
   const badges = {
-    'canvas': '✨',
-    'video': '🎬',
-    'image': '🖼️',
-    'gradient': '🌈',
-    'color': '🎨'
+    canvas: '🖌️',
+    gradient: '🌈',
+    color: '🎨',
+    image: '🖼️',
+    video: '🎥',
+    youtube: '▶️',
+    animated: '🎬'
   }
-  return badges[type] || '🎨'
+  return badges[type] || '✨'
 }
 
 function getTypeLabel(type) {
   const labels = {
-    'canvas': 'Animated',
-    'video': 'Video',
-    'image': 'Photo',
-    'gradient': 'Gradient',
-    'color': 'Solid Color'
+    canvas: 'Canvas',
+    gradient: 'Gradient',
+    color: 'Color',
+    image: 'Image',
+    video: 'Video',
+    youtube: 'YouTube',
+    animated: 'Animated'
   }
-  return labels[type] || 'Custom'
+  return labels[type] || 'Theme'
 }
 
+function getThemesByCategory(category) {
+  const themes = {}
+  
+  // Get built-in themes
+  Object.entries(store.themes).forEach(([key, theme]) => {
+    if (theme.category === category) {
+      themes[key] = theme
+    }
+  })
+  
+  return themes
+}
+
+// Gestion des erreurs d'image
 function handleImageError(event) {
-  // Fallback to a gradient if image fails to load
-  const colors = ['#8B5CF6', '#EC4899', '#F59E0B']
-  event.target.style.display = 'none'
-  event.target.parentElement.style.background = `linear-gradient(45deg, ${colors.join(', ')})`
+  const img = event.target
+  img.style.display = 'none'
+  const fallback = document.createElement('div')
+  fallback.className = 'fallback-preview'
+  fallback.textContent = '🌌'
+  img.parentNode.insertBefore(fallback, img.nextSibling)
 }
 
-function addYouTubeBackground() {
-  youtubeError.value = ''
+// Gestion des dégradés personnalisés
+function updateCustomGradient() {
+  // Mise à jour du prévisualisation via la computed property
+}
 
-  if (!youtubeUrl.value.trim()) {
-    youtubeError.value = 'Please enter a YouTube URL'
-    return
-  }
-
-  const success = store.setYouTubeBackground(youtubeUrl.value)
-
-  if (success) {
-    youtubeUrl.value = ''
-    youtubeError.value = ''
-    // Optionally close the sidebar
-    // store.toggleSidebar()
-  } else {
-    youtubeError.value = 'Invalid YouTube URL. Please check the format and try again.'
+function addColor() {
+  if (customGradientColors.value.length < 5) {
+    customGradientColors.value.push('#000000')
   }
 }
 
-function useExampleVideo(url) {
-  youtubeUrl.value = url
-  addYouTubeBackground()
-}
-
-function updateGradientColor(index, color) {
-  gradientColors.value[index] = color
-}
-
-function getGradientPreviewStyle() {
-  return {
-    background: `linear-gradient(45deg, ${gradientColors.value.join(', ')})`,
-    backgroundSize: '200% 200%',
-    animation: 'gradientAnimation 3s ease infinite'
+function removeColor(index) {
+  if (customGradientColors.value.length > 2) {
+    customGradientColors.value.splice(index, 1)
   }
 }
 
 function applyCustomGradient() {
-  store.setCustomGradientColors(gradientColors.value)
-  store.setAnimatedGradientBackground()
+  const gradientValue = customGradientPreview.value
+  store.setBackground('gradient', gradientValue)
+  
+  // Créer un thème personnalisé
+  const themeId = `custom-gradient-${Date.now()}`
+  const newTheme = {
+    name: 'Dégradé personnalisé',
+    type: 'gradient',
+    value: gradientValue,
+    category: 'gradients',
+    custom: true
+  }
+  
+  // Ajouter le thème à la liste
+  store.themes[themeId] = newTheme
+  
+  // Sélectionner le nouveau thème
+  store.setTheme(themeId)
 }
 
-function resetToDefaults() {
-  gradientColors.value = ['#DF437A', '#3d57d6', '#a117fd', '#ec634b']
+// Gestion des vidéos YouTube
+function setYoutubeBackground() {
+  if (!youtubeUrl.value) return
+  
+  // Extraire l'ID de la vidéo YouTube
+  const videoId = extractYoutubeId(youtubeUrl.value)
+  if (!videoId) {
+    alert("L'URL YouTube n'est pas valide")
+    return
+  }
+  
+  store.setYouTubeBackground(youtubeUrl.value)
+  
+  // Créer un thème personnalisé pour YouTube
+  const themeId = `youtube-${videoId}`
+  const newTheme = {
+    name: 'YouTube Video',
+    type: 'youtube',
+    value: youtubeUrl.value,
+    category: 'youtube',
+    preview: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+    custom: true
+  }
+  
+  // Ajouter le thème à la liste
+  store.themes[themeId] = newTheme
+  
+  // Sélectionner le nouveau thème
+  store.setTheme(themeId)
+  
+  // Réinitialiser l'URL
+  youtubeUrl.value = ''
 }
 
-function applyPreset(colors) {
-  gradientColors.value = [...colors]
-  applyCustomGradient()
+// Fonction utilitaire pour extraire l'ID d'une vidéo YouTube
+function extractYoutubeId(url) {
+  const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/
+  const match = url.match(regExp)
+  return (match && match[7].length === 11) ? match[7] : null
 }
 
-function getThemesByCategory(category) {
-  const gradientThemes = [
-    'aura-twilight', 'peach-aura-heart', 'light-pink-heart', 'flare',
-    'minimalist-black', 'minimalist-white', 'heat-map', 'dark-purple-heart',
-    'light-purple-heart', 'grainy-gradient', 'lava-lamp', 'aurora', 'custom-animated-gradient'
-  ]
+function useExampleVideo(url) {
+  youtubeUrl.value = url
+  youtubeError.value = ''
+  // Défilement vers le champ d'entrée
+  nextTick(() => {
+    const input = document.querySelector('.youtube-input')
+    if (input) input.focus()
+  })
+}
 
-  const imageThemes = [
-    'countryside-morning', 'toto-forest', 'lofi-clouds', 'dusk-peak',
-    'tuscan-village', 'forest-retreat', 'cotton-candy-sky', 'countryside-night',
-    'underwater-reef', 'enchanted-river', 'hobbit-home', 'golden-forest-cat',
-    // New image themes from assets
-    '3d-cartoon-door', 'digital-river-landscape', 'mysterious-forest-cat',
-    'mononoke-forest', 'kiki-flying', 'chihiro-flowers', 'totoro-forest',
-    'monet-painting', 'bay-of-naples', 'kiki-workshop'
-  ]
-
-  const natureThemes = [
-    // Nature animated backgrounds
-    'spirited-away-island', 'flowers-water-stream', 'totoro-rain', 
-    'flower-field-howls', 'small-forest-house', 'arrietty-flower-field',
-    'howls-moving-castle', 'zelda-forest-temple', 'castle-beyond-clouds'
-  ]
-
-  const lofiThemes = [
-    // Lofi animated backgrounds  
-    'chihiro-spirited-away', 'evening-chill', 'lofi-cozy-house-rain',
-    'lofi-house-cloudy', 'lofi-girl-animated'
-  ]
-
-  const cafeThemes = [
-    // Café animated backgrounds
-    'japanese-lofi-cafe', 'morning-coffee', 'coffee-shop'
-  ]
-
-  const themes = {}
-
-  if (category === 'gradients') {
-    gradientThemes.forEach(key => {
-      if (store.themes[key]) themes[key] = store.themes[key]
-    })
-  } else if (category === 'images') {
-    imageThemes.forEach(key => {
-      if (store.themes[key]) themes[key] = store.themes[key]
-    })
-  } else if (category === 'nature') {
-    natureThemes.forEach(key => {
-      if (store.themes[key]) themes[key] = store.themes[key]
-    })
-  } else if (category === 'lofi') {
-    lofiThemes.forEach(key => {
-      if (store.themes[key]) themes[key] = store.themes[key]
-    })
-  } else if (category === 'cafe') {
-    cafeThemes.forEach(key => {
-      if (store.themes[key]) themes[key] = store.themes[key]
-    })
+function addYouTubeBackground() {
+  if (!youtubeUrl.value.trim()) {
+    youtubeError.value = 'Veuillez entrer une URL YouTube valide'
+    return
   }
 
-  return themes
+  const videoId = extractYoutubeId(youtubeUrl.value)
+  if (!videoId) {
+    youtubeError.value = 'URL YouTube non valide. Format attendu : https://www.youtube.com/watch?v=...'
+    return
+  }
+
+  // Appeler la fonction du store pour définir l'arrière-plan YouTube
+  store.setYouTubeBackground(youtubeUrl.value)
+  
+  // Réinitialiser le champ
+  youtubeUrl.value = ''
+  youtubeError.value = ''
+  
+  // Afficher un message de succès
+  // Vous pouvez ajouter une notification ici si nécessaire
 }
 
 // Video preview optimization methods
 function playPreview(event) {
-  const videoElement = event.currentTarget.querySelector('.theme-video')
-  if (videoElement) {
-    videoElement.currentTime = 0
-    videoElement.play().catch(() => {
-      // Ignore play errors (common on mobile or when multiple videos play)
-    })
+  const video = event.currentTarget.querySelector('video')
+  if (video) {
+    video.play().catch(e => console.error('Error playing video:', e))
   }
 }
 
 function pausePreview(event) {
-  const videoElement = event.currentTarget.querySelector('.theme-video')
-  if (videoElement) {
-    videoElement.pause()
-    videoElement.currentTime = 0
+  const video = event.currentTarget.querySelector('video')
+  if (video) {
+    video.pause()
+    video.currentTime = 0
   }
 }
 </script>
 
 <style scoped>
-.theme-categories {
-  margin-bottom: 32px;
-}
-
-.category-section {
-  margin-bottom: 40px;
-}
-
-.category-title {
-  margin: 0 0 20px 0;
-  font-size: 18px;
-  font-weight: 600;
+.panel-section {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
   color: var(--color-text-primary);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 8px;
 }
 
-.subcategory-title {
-  margin: 32px 0 16px 0;
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  padding-left: 16px;
-  border-left: 3px solid var(--color-primary);
-}
-
+/* Styles pour les cartes de thèmes */
 .themes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 16px;
+  margin: 0;
+  padding: 4px 0;
 }
 
 .theme-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--border-radius-md);
+  background: transparent;
+  border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
   transition: all 0.2s ease;
+  border: 2px solid transparent;
+  position: relative;
+  aspect-ratio: 4/3;
+  height: auto;
 }
 
 .theme-card:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
 }
 
 .theme-card.active {
-  background: rgba(139, 92, 246, 0.2);
   border-color: var(--color-primary);
-  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.3);
 }
 
 .theme-preview {
   position: relative;
-  height: 80px;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.theme-image,
-.theme-video,
-.canvas-preview,
-.gradient-preview,
-.color-preview {
+.theme-image, .theme-video {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.2s ease;
-}
-
-.color-preview {
-  border-radius: 4px;
+  transition: transform 0.3s ease;
 }
 
 .theme-card:hover .theme-image,
-.theme-card:hover .theme-video,
-.theme-card:hover .canvas-preview,
-.theme-card:hover .color-preview {
+.theme-card:hover .theme-video {
   transform: scale(1.05);
 }
 
-.canvas-preview {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.canvas-indicator {
-  font-size: 20px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  animation: sparkle 2s ease-in-out infinite;
-}
-
-@keyframes sparkle {
-  0%, 100% { opacity: 0.7; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.1); }
-}
-
-.theme-type-badge {
+.theme-video {
   position: absolute;
-  top: 6px;
-  right: 6px;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  padding: 2px 6px;
-  font-size: 10px;
-  line-height: 1;
+  top: 0;
+  left: 0;
+  opacity: 0.9;
+  transition: opacity 0.3s ease;
 }
 
-.theme-type-badge.video {
-  background: rgba(239, 68, 68, 0.8);
-}
-
-.theme-type-badge.canvas {
-  background: rgba(139, 92, 246, 0.8);
-}
-
-.theme-type-badge.image {
-  background: rgba(34, 197, 94, 0.8);
-}
-
-.theme-type-badge.gradient {
-  background: rgba(249, 115, 22, 0.8);
-}
-
-.theme-type-badge.color {
-  background: rgba(168, 85, 247, 0.8);
+.theme-card:hover .theme-video {
+  opacity: 1;
 }
 
 .video-play-indicator {
@@ -709,499 +872,683 @@ function pausePreview(event) {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 36px;
-  height: 36px;
-  background: rgba(0, 0, 0, 0.7);
-  border-radius: var(--border-radius-full);
+  width: 48px;
+  height: 48px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.theme-card:hover .video-play-indicator {
   opacity: 1;
+}
+
+.theme-card .video-play-indicator svg {
+  width: 24px;
+  height: 24px;
+  color: white;
+  margin-left: 3px;
+}
+
+.theme-type-badge.video {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+
+.gradient-preview,
+.canvas-preview,
+.animated-gradient-preview {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+}
+
+.canvas-indicator,
+.animated-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 28px;
+  opacity: 0.9;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.theme-type-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.theme-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  color: white;
+  opacity: 0;
+  transform: translateY(10px);
   transition: all 0.2s ease;
   pointer-events: none;
 }
 
-.theme-preview:hover .video-play-indicator {
-  opacity: 0;
-}
-
-.theme-video:not([data-loaded]) + .video-play-indicator {
+.theme-card:hover .theme-info {
   opacity: 1;
-}
-
-.theme-info {
-  padding: 12px;
+  transform: translateY(0);
 }
 
 .theme-name {
-  margin: 0 0 4px 0;
+  margin: 0 0 2px 0;
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .theme-type {
   margin: 0;
   font-size: 11px;
-  color: var(--color-text-secondary);
-}
-
-.setting-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.slider-container {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.slider {
-  width: 100px;
-  height: 4px;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.2);
-  outline: none;
-  cursor: pointer;
-}
-
-.slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  cursor: pointer;
-}
-
-.slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  cursor: pointer;
-  border: none;
-}
-
-.slider-value {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  min-width: 32px;
-  text-align: right;
-}
-
-.toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 40px;
-  height: 20px;
-}
-
-.toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(255, 255, 255, 0.2);
-  transition: 0.2s;
-  border-radius: 20px;
-}
-
-.toggle-slider:before {
-  position: absolute;
-  content: "";
-  height: 16px;
-  width: 16px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
-  transition: 0.2s;
-  border-radius: 50%;
-}
-
-input:checked + .toggle-slider {
-  background-color: var(--color-primary);
-}
-
-input:checked + .toggle-slider:before {
-  transform: translateX(20px);
-}
-
-.select-input {
-  padding: 6px 8px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--border-radius-sm);
-  color: var(--color-text-primary);
-  font-size: 12px;
-}
-
-h4 {
-  margin: 0 0 16px 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-h5 {
-  margin: 16px 0 12px 0;
-  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   font-weight: 500;
-  color: var(--color-text-primary);
+}
+
+/* Styles pour la section YouTube */
+.setting-group {
+  margin-top: 24px;
+  background: var(--color-bg-secondary);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.youtube-section {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
 }
 
 .setting-description {
-  font-size: 13px;
   color: var(--color-text-secondary);
-  margin-bottom: 20px;
-  line-height: 1.4;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+  line-height: 1.5;
 }
 
 .youtube-input-section {
-  margin-bottom: 24px;
-}
-
-.input-group {
   display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .youtube-input {
   flex: 1;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--border-radius-md);
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-primary);
   color: var(--color-text-primary);
-  font-size: 14px;
+  font-size: 0.95rem;
   transition: all 0.2s ease;
 }
 
 .youtube-input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
   outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2);
 }
 
-.youtube-input::placeholder {
-  color: var(--color-text-secondary);
-}
-
-.add-youtube-btn {
-  padding: 12px 20px;
+.youtube-button {
+  padding: 0 20px;
   background: var(--color-primary);
-  border: none;
-  border-radius: var(--border-radius-md);
   color: white;
-  font-size: 14px;
-  font-weight: 500;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
+  font-weight: 500;
   transition: all 0.2s ease;
-  white-space: nowrap;
 }
 
-.add-youtube-btn:hover:not(:disabled) {
-  background: var(--color-primary-dark);
+.youtube-button:hover {
+  opacity: 0.9;
   transform: translateY(-1px);
 }
 
-.add-youtube-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
+.youtube-button:active {
+  transform: translateY(0);
 }
 
-.error-message {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: var(--border-radius-sm);
-  padding: 8px 12px;
-  color: #FCA5A5;
-  font-size: 12px;
-  margin-bottom: 16px;
+.youtube-error {
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  margin: 8px 0 16px;
 }
 
 .youtube-examples {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 20px;
   padding-top: 16px;
+  border-top: 1px solid var(--color-border);
 }
 
-.example-links {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 8px;
-}
-
-.example-btn {
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--border-radius-sm);
+.youtube-hint {
+  font-size: 0.85rem;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  margin: 0 0 12px 0;
+}
+
+.youtube-examples-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.youtube-example {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  text-align: left;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.example-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--color-text-primary);
+.youtube-example:hover {
+  background: var(--color-bg-hover);
   border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
-.gradient-customizer {
-  margin-bottom: 24px;
+/* Styles pour la section de dégradé personnalisé */
+.custom-gradient-section {
+  margin-top: 16px;
 }
 
-.color-inputs {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.color-input-group {
+.gradient-controls {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
+  margin-bottom: 12px;
 }
 
-.color-label {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  font-weight: 500;
+.color-picker-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .color-picker {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  background: transparent;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  background: transparent;
 }
 
-.color-picker:hover {
+.remove-color {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.add-color {
+  width: 40px;
+  height: 40px;
+  border: 2px dashed var(--color-border);
+  background: transparent;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-color:hover {
   border-color: var(--color-primary);
-  transform: scale(1.05);
+  color: var(--color-primary);
 }
 
 .gradient-preview {
-  margin-bottom: 20px;
-}
-
-.preview-container {
+  width: 100%;
   height: 80px;
-  border-radius: var(--border-radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  position: relative;
-  overflow: hidden;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  border: 1px solid var(--color-border);
 }
 
-.preview-text {
-  color: white;
-  font-weight: 600;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  font-size: 14px;
-}
-
-.gradient-actions {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.apply-gradient-btn {
-  flex: 1;
-  padding: 12px 20px;
+.apply-gradient {
+  width: 100%;
+  padding: 10px;
   background: var(--color-primary);
+  color: white;
   border: none;
-  border-radius: var(--border-radius-md);
-  color: white;
-  font-size: 14px;
+  border-radius: 4px;
   font-weight: 500;
   cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.apply-gradient:hover {
+  opacity: 0.9;
+}
+
+/* Styles pour les sections réductibles */
+.category-section {
+  margin-bottom: 24px;
+  background: var(--color-bg-secondary);
+  border-radius: 12px;
+  padding: 16px;
   transition: all 0.2s ease;
 }
 
-.apply-gradient-btn:hover {
-  background: var(--color-primary-dark);
-  transform: translateY(-1px);
+.category-section:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.reset-btn {
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--border-radius-md);
+.subcategory-title {
+  margin: 16px 0 12px 0;
+  font-size: 0.9rem;
+  font-weight: 600;
   color: var(--color-text-secondary);
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.reset-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--color-text-primary);
-}
-
-.preset-gradients {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 20px;
-}
-
-.preset-buttons {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 12px;
-}
-
-.preset-btn {
-  padding: 10px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: var(--border-radius-md);
-  color: white;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  min-height: 40px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 8px;
 }
 
-.preset-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  border-color: rgba(255, 255, 255, 0.4);
+.category-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  padding: 10px 0;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  margin: -10px -10px 10px -10px;
+  padding: 10px;
 }
 
-@keyframes gradientAnimation {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+.category-toggle:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 
-/* Responsive */
+.category-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chevron {
+  transition: transform 0.2s ease;
+}
+
+.chevron.open {
+  transform: rotate(180deg);
+}
+
+/* Styles pour les écrans plus petits */
 @media (max-width: 768px) {
   .themes-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   }
   
   .theme-preview {
-    height: 70px;
-  }
-  
-  .theme-info {
-    padding: 10px;
-  }
-  
-  .theme-name {
-    font-size: 12px;
-  }
-  
-  .theme-type {
-    font-size: 10px;
+    height: 80px;
   }
 }
 
 @media (max-width: 480px) {
   .themes-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
   }
+}
 
-  .theme-preview {
-    height: 60px;
-  }
+h3 {
+  margin: 0 0 10px 0;
+  color: var(--color-text-primary);
+  font-size: 1.5rem;
+}
 
-  .setting-item {
+.section-description {
+  margin: 0 0 20px 0;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.theme-categories {
+  margin-bottom: 32px;
+}
+
+.category-section {
+  margin-bottom: 24px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Section de couleur du thème */
+.theme-color-section {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.accent-title {
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--color-text);
+  font-size: 1.2rem;
+}
+
+.color-picker-container {
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+@media (max-width: 768px) {
+  .color-picker-container {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+    gap: 20px;
   }
+}
 
-  .slider-container {
-    align-self: stretch;
-    justify-content: space-between;
-  }
+.custom-color-picker,
+.preset-colors {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  flex: 1;
+  min-width: 0;
+}
 
-  .slider {
-    flex: 1;
-    margin-right: 12px;
-  }
+.color-picker-label,
+.preset-colors-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 15px 0;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
 
-  .input-group {
-    flex-direction: column;
-    gap: 8px;
-  }
+.color-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-  .youtube-input {
-    padding: 10px 12px;
-  }
+.color-input {
+  width: 50px;
+  height: 50px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  cursor: pointer;
+  background: transparent;
+  padding: 0;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  margin: 0;
+  background: transparent;
+}
 
-  .add-youtube-btn {
-    padding: 10px 16px;
-    align-self: stretch;
-    text-align: center;
-  }
+.color-input::-webkit-color-swatch {
+  border: 2px solid white;
+  border-radius: 6px;
+  padding: 0;
+  margin: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
 
-  .example-links {
-    grid-template-columns: 1fr;
-  }
+.color-input::-webkit-color-swatch-wrapper {
+  padding: 0;
+  margin: 0;
+  border: none;
+}
 
-  .color-inputs {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
+.color-value {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.85rem;
+  color: white;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 8px 12px;
+  border-radius: 6px;
+  min-width: 80px;
+  text-align: center;
+  margin-left: 10px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
 
-  .color-picker {
-    width: 50px;
-    height: 50px;
-  }
+.color-presets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
 
-  .gradient-actions {
-    flex-direction: column;
-    gap: 8px;
-  }
+.color-preset {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
 
-  .preset-buttons {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-  }
+.color-preset:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
 
-  .preset-btn {
-    padding: 8px 10px;
-    font-size: 11px;
-    min-height: 35px;
-  }
+.check-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  backdrop-filter: blur(5px);
+  padding: 2px;
+}
+
+/* Styles pour les titres de section */
+.section-title {
+  margin: 0 0 4px 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.section-description {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  opacity: 0.8;
+}
+
+.category-toggle:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.category-toggle h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chevron.open {
+  transform: rotate(180deg);
+}
+
+.themes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.theme-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.theme-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  border-color: var(--color-primary, #3B82F6);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.theme-card.active {
+  border: 2px solid var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-30);
+}
+
+.theme-preview {
+  position: relative;
+  height: 100px;
+  background: var(--color-bg-secondary);
+  overflow: hidden;
+}
+
+.theme-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.canvas-preview,
+.gradient-preview,
+.color-preview {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.theme-type-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+}
+
+.theme-info {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.theme-name {
+  margin: 0 0 4px 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.theme-type {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  opacity: 0.8;
 }
 </style>

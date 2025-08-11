@@ -9,11 +9,7 @@
         :title="'Mode Accueil'"
         :aria-label="'Mode Accueil'"
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- Modern house icon -->
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="currentColor"/>
-          <path d="M9 22V12h6v10" fill="rgba(255, 255, 255, 0.3)"/>
-        </svg>
+        <span class="icon icon-home" aria-hidden="true"></span>
       </button>
 
       <!-- Ambience Mood Button (Lotus icon) -->
@@ -24,12 +20,7 @@
         :title="'Mode Ambiance'"
         :aria-label="'Mode Ambiance'"
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- Lotus flower icon -->
-          <path d="M12 2c-1.5 0-3 1-3 3s1 3 2.5 4c-1 .5-2 1.5-2 3 0 2 1.5 3.5 3 3.5.8 0 1.5-.3 2-.8.5.5 1.2.8 2 .8 1.5 0 3-1.5 3-3.5 0-1.5-1-2.5-2-3C18 8 19 6 19 5s-1.5-3-3-3c-.8 0-1.5.3-2 .8C13.5 2.3 12.8 2 12 2z" fill="currentColor"/>
-          <path d="M7 12c0-1.5 1-2.5 2.5-2.5s2.5 1 2.5 2.5-1 2.5-2.5 2.5S7 13.5 7 12z" fill="currentColor"/>
-          <path d="M17 12c0-1.5-1-2.5-2.5-2.5S12 10.5 12 12s1 2.5 2.5 2.5S17 13.5 17 12z" fill="currentColor"/>
-        </svg>
+        <span class="icon icon-ambience" aria-hidden="true"></span>
       </button>
 
       <!-- Focus Mood Button (Timer icon) -->
@@ -40,13 +31,7 @@
         :title="'Mode Focus'"
         :aria-label="'Mode Focus'"
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- Timer/Stopwatch icon -->
-          <circle cx="12" cy="12" r="10" fill="currentColor"/>
-          <circle cx="12" cy="12" r="7" fill="rgba(255, 255, 255, 0.2)"/>
-          <path d="M12 6v6l4 2" stroke="rgba(255, 255, 255, 0.8)" stroke-width="2" stroke-linecap="round"/>
-          <circle cx="12" cy="5" r="1" fill="rgba(255, 255, 255, 0.8)"/>
-        </svg>
+        <span class="icon icon-focus" aria-hidden="true"></span>
       </button>
     </div>
   </div>
@@ -76,27 +61,65 @@ function setMood(newMood) {
   display: flex;
   gap: 16px;
   padding: 12px 20px;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.08); /* light white */
+  backdrop-filter: blur(12px);
   border-radius: 50px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
 }
 
 .mood-button {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.7);
-  display: flex;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.85);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
   cursor: pointer;
+  transition: all 0.2s ease;
   position: relative;
+}
+
+.mood-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+/* Icon masks: keep 24x24 size and inherit currentColor */
+.icon {
+  width: 24px;
+  height: 24px;
+  display: block;
+  background-color: currentColor;
+  /* WebKit mask */
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  /* Standard mask */
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+.icon-home {
+  -webkit-mask-image: url('/assets/icons/home%20icon.svg');
+  mask-image: url('/assets/icons/home%20icon.svg');
+}
+
+.icon-ambience {
+  -webkit-mask-image: url('/assets/icons/ambience%20icon.svg');
+  mask-image: url('/assets/icons/ambience%20icon.svg');
+}
+
+.icon-focus {
+  -webkit-mask-image: url('/assets/icons/focus%20icon.svg');
+  mask-image: url('/assets/icons/focus%20icon.svg');
 }
 
 .mood-button:hover {

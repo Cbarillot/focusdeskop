@@ -173,10 +173,16 @@ const displayModes = [
 }
 
 .section-title {
-  margin: 0 0 16px 0;
-  font-size: 16px;
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--color-text);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .setting-group {

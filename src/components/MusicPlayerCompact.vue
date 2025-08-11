@@ -1,11 +1,11 @@
 <template>
   <div class="music-player-compact">
-    <!-- Music Button -->
+    <!-- Music Button (kept, no toggle) -->
     <button 
       class="music-button"
-      @click="togglePlayer"
-      :class="{ expanded: isExpanded, playing: store.musicPlaying }"
+      :class="{ playing: store.musicPlaying }"
       title="Musique"
+      @click="openMusicSettings"
     >
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
@@ -15,63 +15,38 @@
       </svg>
     </button>
 
-    <!-- Compact Music Player -->
-    <div 
-      class="music-player-panel"
-      :class="{ expanded: isExpanded }"
-    >
-      <div class="player-header">
-        <h3>Player Musique</h3>
-        <button class="close-btn" @click="togglePlayer">×</button>
-      </div>
-      
-      <div class="player-content">
-        <!-- Current Track -->
-        <div v-if="store.currentTrack" class="current-track">
-          <div class="track-name">{{ store.currentTrack }}</div>
-          <div class="track-status">{{ store.musicPlaying ? 'En cours' : 'En pause' }}</div>
-        </div>
-        
-        <div v-else class="no-track">
-          Aucune musique sélectionnée
-        </div>
-
-        <!-- Controls -->
-        <div class="music-controls">
-          <button 
-            @click="store.toggleMusicPlayback()"
-            :disabled="!store.currentTrack"
-            class="control-btn"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <polygon v-if="!store.musicPlaying" points="8,5 19,12 8,19" fill="currentColor"/>
-              <rect v-else x="6" y="4" width="4" height="16" fill="currentColor"/>
-              <rect v-else x="14" y="4" width="4" height="16" fill="currentColor"/>
-            </svg>
-          </button>
-          
-          <button 
-            @click="store.stopMusic()"
-            :disabled="!store.currentTrack"
-            class="control-btn"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="6" y="6" width="12" height="12" fill="currentColor"/>
-            </svg>
-          </button>
-          
-          <button 
-            @click="openMusicSettings"
-            class="control-btn settings-btn"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" fill="currentColor"/>
-              <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="1.5"/>
-            </svg>
-          </button>
+    <!-- Compact Music Player (always visible) -->
+    <div class="music-player-panel">
+      <div class="player-content" @dblclick="openMusicSettings" title="Double-cliquez pour ouvrir les réglages musique">
+        <div class="vinyl-player">
+          <div class="player-container">
+            <div class="album-sleeve">
+              <div class="sleeve-inner">
+                <div v-if="ytReady" id="youtube-player"></div>
+                <iframe 
+                  v-else 
+                  class="yt-fallback" 
+                  width="100%" height="100%" 
+                  src="https://www.youtube.com/embed/jfKfPfyJRdk?playsinline=1&controls=1&loop=1&playlist=jfKfPfyJRdk" 
+                  title="YouTube video player" 
+                  frameborder="0" 
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                  allowfullscreen
+                ></iframe>
+              </div>
+            </div>
+            
+            <div :class="['vinyl-wrapper', { 'is-playing': isPlaying }]">
+              <img 
+                :class="['vinyl-record', { 'is-spinning': isPlaying }]" 
+                src="/assets/icons/vinyle.png" 
+                alt="Disque vinyle"
+              />
+            </div>
+          </div>
         </div>
 
-        <!-- Quick Playlists -->
+        <!-- Quick Playlists (kept minimal to avoid overlays) -->
         <div v-if="store.youtubePlaylists?.length" class="quick-playlists">
           <div class="playlist-title">Accès rapide</div>
           <div class="playlist-buttons">
@@ -91,31 +66,117 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useAppStore } from '../stores/appStore'
 
 const store = useAppStore()
-const isExpanded = ref(false)
-
-function togglePlayer() {
-  isExpanded.value = !isExpanded.value
-}
+const isPlaying = ref(false)
+const ytReady = ref(false)
+let ytPlayer = null
 
 function openMusicSettings() {
-  // Ouvre le panneau de paramètres musique
   store.setActiveTab('music')
-  if (!store.sidebarOpen) {
-    store.toggleSidebar()
-  }
-  // Ferme le player compact
-  isExpanded.value = false
+  if (!store.sidebarOpen) store.toggleSidebar()
 }
+
+function createYouTubePlayer() {
+  if (!window.YT || !window.YT.Player) return
+  if (ytPlayer) return
+  
+  ytPlayer = new window.YT.Player('youtube-player', {
+    height: '100%',
+    width: '100%',
+    videoId: getCurrentYouTubeId() || 'jfKfPfyJRdk',
+    playerVars: { 
+      playsinline: 1, 
+      controls: 1, 
+      loop: 1, 
+      playlist: 'jfKfPfyJRdk',
+      enablejsapi: 1,
+      origin: window.location.origin
+    },
+    events: {
+      onReady: () => {
+        console.log('YouTube Player Ready')
+        // Expose the player globally for other components to use
+        window.ytPlayer = ytPlayer
+        ytReady.value = true
+      },
+      onStateChange: (event) => {
+        const YTPS = window.YT.PlayerState
+        if (!YTPS) return
+        
+        if (event.data === YTPS.PLAYING) {
+          isPlaying.value = true
+          store.musicPlaying = true
+        } else if (event.data === YTPS.PAUSED || event.data === YTPS.ENDED) {
+          isPlaying.value = false
+          store.musicPlaying = false
+        }
+      },
+      onError: (error) => {
+        console.error('YouTube Player Error:', error)
+      }
+    }
+  })
+}
+
+function loadYouTubeAPI() {
+  if (window.YT && window.YT.Player) {
+    createYouTubePlayer()
+    return
+  }
+  const tag = document.createElement('script')
+  tag.src = 'https://www.youtube.com/iframe_api'
+  document.body.appendChild(tag)
+  window.onYouTubeIframeAPIReady = () => {
+    createYouTubePlayer()
+  }
+}
+
+// Always load the API on mount (player is always visible)
+onMounted(() => {
+  loadYouTubeAPI()
+})
+
+onBeforeUnmount(() => {
+  try { ytPlayer && ytPlayer.destroy && ytPlayer.destroy() } catch {}
+  ytPlayer = null
+})
+
+// --- Bind to store.musicUrl so a pasted YouTube URL loads immediately ---
+function getCurrentYouTubeId() {
+  const url = store.musicUrl || ''
+  // Prefer store.extractYouTubeId if available
+  try {
+    if (store.extractYouTubeId) {
+      return store.extractYouTubeId(url)
+    }
+  } catch {}
+  // Fallback regex
+  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/)
+  return m ? m[1] : ''
+}
+
+watch(() => store.musicUrl, (newUrl) => {
+  if (!newUrl || !ytPlayer || !window.YT) return
+  const id = getCurrentYouTubeId()
+  if (id) {
+    try {
+      if (typeof ytPlayer.loadVideoById === 'function') {
+        ytPlayer.loadVideoById(id)
+      } else if (typeof ytPlayer.cueVideoById === 'function') {
+        ytPlayer.cueVideoById(id)
+      }
+    } catch {}
+  }
+})
 </script>
 
 <style scoped>
 .music-player-compact {
   position: fixed;
-  bottom: 100px;
+  bottom: 20px;
   left: 20px;
   z-index: 150;
   display: flex;
@@ -125,66 +186,66 @@ function openMusicSettings() {
 }
 
 .music-button {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  background: rgba(0, 191, 165, 0.9);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(0, 191, 165, 1);
-  color: white;
+  background: rgba(255, 255, 255, 0.12); /* semi-transparent white */
+  color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 191, 165, 0.3);
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 50; /* ensure above the panel */
 }
 
 .music-button:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(0, 191, 165, 0.4);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
 }
 
 .music-button.playing {
-  background: rgba(255, 165, 0, 0.9);
-  border-color: rgba(255, 165, 0, 1);
-  box-shadow: 0 4px 16px rgba(255, 165, 0, 0.3);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.26);
 }
 
-.music-button.expanded {
-  border-radius: 12px 12px 0 0;
-  background: rgba(0, 191, 165, 1);
-}
+/* 15" desktop optimization (heights <= 820px) */
+@media (max-height: 820px) and (min-width: 1024px) {
+  .music-player-compact {
+    bottom: 16px;
+    left: 16px;
+    gap: 2px;
+  }
 
-.music-button.expanded.playing {
-  background: rgba(255, 165, 0, 1);
-  border-color: rgba(255, 165, 0, 1);
+  .music-button {
+    width: 48px;
+    height: 48px;
+  }
+
+  .music-player-panel .player-content {
+    padding: 8px;
+  }
+
+  .vinyl-player .player-container {
+    transform: scale(0.95);
+    transform-origin: top left;
+  }
 }
 
 .music-player-panel {
   width: 280px;
-  height: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-top: none;
-  border-radius: 0 0 12px 12px;
+  background: rgba(255, 255, 255, 0.06); /* very light white, almost transparent */
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
   overflow: hidden;
-  transition: all 0.3s ease;
-  opacity: 0;
-}
-
-.music-player-panel.expanded {
-  height: 220px;
-  opacity: 1;
-}
-
-.player-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 10px; /* sits under the button */
+  pointer-events: auto;
+  z-index: 40;
 }
 
 .player-header h3 {
@@ -216,6 +277,79 @@ function openMusicSettings() {
 
 .player-content {
   padding: 16px;
+}
+
+/* Vinyl player layout (compact) */
+.vinyl-player {
+  display: flex;
+  justify-content: center;
+}
+
+.player-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative; /* create stacking context */
+}
+
+.album-sleeve {
+  width: 120px;
+  aspect-ratio: 1 / 1;
+  background: #ffffff; /* opaque white frame */
+  border: 2px solid rgba(255,255,255,0.6); /* subtle white border */
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2), inset 0 0 8px rgba(0,0,0,0.04);
+  overflow: hidden;
+  position: relative;
+  z-index: 2; /* above vinyl */
+}
+
+.sleeve-inner {
+  width: calc(100% - 12px); /* leave a white frame */
+  height: calc(100% - 12px);
+  margin: 6px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000; /* video surface */
+}
+
+.vinyl-wrapper {
+  width: 120px;
+  aspect-ratio: 1 / 1;
+  transition: transform 0.4s ease-out;
+  margin-left: -70px; /* deeper under sleeve */
+  position: relative;
+  z-index: 1; /* behind sleeve */
+  pointer-events: none; /* avoid blocking interactions */
+}
+
+.music-player-panel:hover .vinyl-wrapper:not(.is-playing) {
+  transform: translateX(30px);
+}
+
+.vinyl-record {
+  width: 100%;
+  height: 100%;
+  animation: spin 10s linear infinite;
+  animation-play-state: paused;
+}
+
+.vinyl-record.is-spinning { animation-play-state: running; }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Ensure YouTube fills the sleeve */
+.sleeve-inner { position: relative; }
+.sleeve-inner #youtube-player,
+.sleeve-inner iframe,
+.yt-fallback {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: 0;
 }
 
 .current-track {
@@ -284,7 +418,7 @@ function openMusicSettings() {
 }
 
 .quick-playlists {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
   padding-top: 12px;
 }
 

@@ -63,13 +63,17 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useAppStore } from '../stores/appStore'
 
 const props = defineProps({
   embedded: {
     type: Boolean,
     default: false
+  },
+  useStoreUrl: {
+    type: Boolean,
+    default: true
   }
 })
 
@@ -204,11 +208,16 @@ function onPlayerStateChange(event) {
 
 function selectPlaylist(playlist) {
   currentPlaylistId.value = playlist.id
-  store.setMusicUrl(`https://www.youtube.com/watch?v=${playlist.videoId}`)
-  store.currentTrack = playlist.name
+  const videoUrl = `https://www.youtube.com/watch?v=${playlist.videoId}`
   
-  if (player && playerReady) {
+  // Update the store which will trigger the watcher
+  store.setMusicUrl(videoUrl)
+  
+  if (playerReady) {
     player.loadVideoById(playlist.videoId)
+    if (store.musicPlaying) {
+      player.playVideo()
+    }
   }
 }
 
@@ -241,11 +250,50 @@ function minimizePlayer() {
   emit('close')
 }
 
+function extractYouTubeId(url) {
+  const regex = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+  const match = url.match(regex);
+  return (match && match[7].length == 11) ? match[7] : false;
+}
+
 onMounted(async () => {
   await initializePlayer()
-  // Set initial playlist
-  store.setMusicUrl(`https://www.youtube.com/watch?v=${currentPlaylist.value.videoId}`)
-  store.currentTrack = currentPlaylist.value.name
+  
+  // Watch for changes in the store's musicUrl
+  const stopWatch = watch(() => store.musicUrl, (newUrl) => {
+    if (props.useStoreUrl && newUrl) {
+      const videoId = extractYouTubeId(newUrl)
+      if (videoId) {
+        const preset = playlists.value.find(p => p.videoId === videoId)
+        if (preset) {
+          currentPlaylistId.value = preset.id
+          if (playerReady) {
+            player.loadVideoById(videoId)
+            if (store.musicPlaying) {
+              player.playVideo()
+            }
+          }
+        } else if (videoId) {
+          // If not in presets but valid video ID, use it
+          if (playerReady) {
+            player.loadVideoById(videoId)
+            if (store.musicPlaying) {
+              player.playVideo()
+            }
+          }
+        }
+      }
+    }
+  }, { immediate: true })
+
+  // Set initial playlist if not using store URL
+  if (!props.useStoreUrl) {
+    store.setMusicUrl(`https://www.youtube.com/watch?v=${currentPlaylist.value.videoId}`)
+  }
+
+  onUnmounted(() => {
+    stopWatch()
+  })
 })
 
 onUnmounted(() => {

@@ -34,11 +34,43 @@ const backgroundType = ref('canvas') // gradient, image, video, canvas, color, y
 const backgroundValue = ref('lava-lamp') // valeur par défaut selon le backgroundType
 const overlayOpacity = ref(0.2) // compromis entre 0.1 et 0.3
 
+// Sample themes for testing
+const sampleThemes = {
+  'gradient-sunset': {
+    name: 'Sunset Gradient',
+    type: 'gradient',
+    value: 'linear-gradient(45deg, #ff9a9e, #fad0c4)',
+    category: 'gradients'
+  },
+  'gradient-ocean': {
+    name: 'Ocean Breeze',
+    type: 'gradient',
+    value: 'linear-gradient(45deg, #4facfe, #00f2fe)',
+    category: 'gradients'
+  },
+  'nature-forest': {
+    name: 'Misty Forest',
+    type: 'image',
+    value: '/assets/themes/images/forest.jpg',
+    preview: '/assets/themes/images/forest-preview.jpg',
+    category: 'images'
+  },
+  'animated-lava': {
+    name: 'Lava Lamp',
+    type: 'canvas',
+    value: 'lava-lamp',
+    colors: ['#DF437A', '#3d57d6', '#a117fd', '#ec634b'],
+    category: 'animated'
+  }
+}
+
 // Custom gradient colors (utilisé pour les backgrounds personnalisés)
 const customGradientColors = ref(['#DF437A', '#3d57d6', '#a117fd', '#ec634b'])
 
 // Authentic Flocus themes with official assets + custom, canvas/animated themes, and color palettes
 const themes = ref({
+  // Sample themes for testing
+  ...sampleThemes,
   // Gradients & Couleurs
   'aura-twilight': {
     name: 'Aura Twilight',

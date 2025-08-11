@@ -6,19 +6,7 @@
     <!-- Main Layout -->
     <div class="main-layout">
        <MusicPlayerCompact />
-      <!-- Header with Settings Button -->
-      <header class="app-header">
-        <button 
-          class="settings-btn"
-          @click="openSettings"
-          :class="{ active: store.sidebarOpen }"
-          title="Paramètres"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-      </header>
+      <!-- Header with Settings Button removed (corner button retained in CornerNavigation.vue) -->
       
       <!-- Main Content Area - Changes based on mood -->
       <main class="main-content">
@@ -78,13 +66,7 @@ const currentLayout = computed(() => {
   }
 })
 
-// Ouvre la sidebar et sélectionne l'onglet "settings"
-function openSettings() {
-  store.setActiveTab('settings') // ou 'timer', selon ta logique SidePanel.vue
-  if (!store.sidebarOpen) {
-    store.toggleSidebar()
-  }
-}
+// Settings are opened via CornerNavigation corner-button now.
 </script>
 
 <style scoped>
@@ -102,37 +84,7 @@ function openSettings() {
   flex-direction: column;
 }
 
-/* Header */
-.app-header {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  z-index: 100;
-}
-
-.settings-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--border-radius-full);
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition-normal);
-}
-
-.settings-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.05);
-}
-
-.settings-btn.active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-}
+/* Header settings button removed; using CornerNavigation corner-button instead */
 
 /* Main Content Area */
 .main-content {
@@ -148,8 +100,9 @@ function openSettings() {
   right: 0;
   width: 400px;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.9);
-  backdrop-filter: blur(20px);
+  /* Let inner SidePanel control the background & blur */
+  background: transparent;
+  backdrop-filter: none;
   z-index: 200;
   overflow-y: auto;
 }
@@ -170,15 +123,7 @@ function openSettings() {
     width: 100vw;
   }
   
-  .app-header {
-    top: 15px;
-    left: 15px;
-  }
-  
-  .settings-btn {
-    width: 44px;
-    height: 44px;
-  }
+  /* removed responsive rules for settings button */
 }
 
 @media (max-width: 480px) {

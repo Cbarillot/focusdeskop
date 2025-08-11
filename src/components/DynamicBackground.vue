@@ -65,7 +65,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, watch, onMounted } from 'vue'
 import { useAppStore } from '../stores/appStore'
 import AnimatedCanvas from './AnimatedCanvas.vue'
 
@@ -100,9 +100,16 @@ function getYouTubeEmbedUrl(videoId) {
 }
 
 // Optimize background loading
-function onImageLoad() {
-  // Image loaded successfully - could add fade-in effect here
-  console.log('Background image loaded')
+async function onImageLoad() {
+  // After the image is loaded, compute its dominant color
+  try {
+    if (store.backgroundType === 'image' && store.backgroundValue) {
+      const rgb = await averageColorFromImage(store.backgroundValue)
+      setDominantRgb(rgb)
+    }
+  } catch (e) {
+    console.warn('Dominant color extraction failed:', e)
+  }
 }
 
 function onImageError() {
@@ -131,6 +138,104 @@ function getAnimatedGradientStyle() {
     backgroundSize: '400% 400%'
   }
 }
+
+// --- Dominant color extraction utilities ---
+function setDominantRgb([r, g, b]) {
+  document.documentElement.style.setProperty('--dominant-rgb', `${r}, ${g}, ${b}`)
+}
+
+function hexToRgb(hex) {
+  let c = hex.replace('#', '')
+  if (c.length === 3) c = c.split('').map(x => x + x).join('')
+  const num = parseInt(c.slice(0, 6), 16)
+  return [num >> 16 & 255, num >> 8 & 255, num & 255]
+}
+
+function parseCssColorToRgb(str) {
+  // Accepts formats: #rgb/#rrggbb, rgb(), rgba()
+  const ctx = document.createElement('canvas').getContext('2d')
+  if (!ctx) return [139, 92, 246]
+  ctx.fillStyle = '#000'
+  ctx.fillStyle = str
+  const computed = ctx.fillStyle
+  if (computed.startsWith('#')) return hexToRgb(computed)
+  const m = computed.match(/rgba?\(([^\)]+)\)/)
+  if (!m) return [139, 92, 246]
+  const parts = m[1].split(',').map(s => parseFloat(s))
+  return [parts[0]||0, parts[1]||0, parts[2]||0]
+}
+
+async function averageColorFromImage(src) {
+  // Downscale to speed up; handle CORS via anonymous if same-origin
+  const img = new Image()
+  img.crossOrigin = 'anonymous'
+  img.referrerPolicy = 'no-referrer'
+  const p = new Promise((resolve, reject) => {
+    img.onload = () => {
+      try {
+        const w = 32, h = 32
+        const canvas = document.createElement('canvas')
+        canvas.width = w; canvas.height = h
+        const ctx = canvas.getContext('2d', { willReadFrequently: true })
+        if (!ctx) return resolve([139, 92, 246])
+        ctx.drawImage(img, 0, 0, w, h)
+        const { data } = ctx.getImageData(0, 0, w, h)
+        let r = 0, g = 0, b = 0, count = 0
+        for (let i = 0; i < data.length; i += 4) {
+          const alpha = data[i + 3]
+          if (alpha < 16) continue
+          r += data[i]
+          g += data[i + 1]
+          b += data[i + 2]
+          count++
+        }
+        if (!count) return resolve([139, 92, 246])
+        resolve([Math.round(r / count), Math.round(g / count), Math.round(b / count)])
+      } catch (err) {
+        resolve([139, 92, 246])
+      }
+    }
+    img.onerror = () => reject(new Error('image load error'))
+  })
+  img.src = src
+  return p
+}
+
+function extractDominantFromBackground() {
+  try {
+    if (store.backgroundType === 'color' && store.backgroundValue) {
+      setDominantRgb(parseCssColorToRgb(store.backgroundValue))
+      return
+    }
+    if (store.backgroundType === 'gradient' && store.backgroundValue) {
+      const matches = String(store.backgroundValue).match(/(#(?:[0-9a-fA-F]{3,8}))|rgba?\([^\)]+\)/g)
+      const first = matches?.[0] || '#8B5CF6'
+      setDominantRgb(first.startsWith('#') ? hexToRgb(first) : parseCssColorToRgb(first))
+      return
+    }
+    if (store.backgroundType === 'image' && store.backgroundValue) {
+      // Will be handled on load too, but attempt here
+      averageColorFromImage(store.backgroundValue).then(setDominantRgb).catch(()=>{})
+      return
+    }
+    // Fallback to theme primary color
+    const primary = getCurrentThemeColors()?.[0] || '#8B5CF6'
+    setDominantRgb(primary.startsWith('#') ? hexToRgb(primary) : parseCssColorToRgb(primary))
+  } catch (e) {
+    // Safe fallback
+    setDominantRgb([139, 92, 246])
+  }
+}
+
+onMounted(() => {
+  extractDominantFromBackground()
+})
+
+watch(
+  () => [store.backgroundType, store.backgroundValue, store.currentTheme],
+  () => extractDominantFromBackground(),
+  { deep: false }
+)
 
 const overlayStyle = computed(() => ({
   backgroundColor: `rgba(0, 0, 0, ${store.overlayOpacity})`

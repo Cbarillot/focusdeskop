@@ -29,7 +29,7 @@
       <!-- Todo Button -->
       <button
         class="corner-button"
-        :class="{ active: store.activeTab === 'todo' && store.sidebarOpen }"
+        :class="{ active: todoModalVisible }"
         @click="openTodo"
         :title="'To-do'"
         :aria-label="'To-do'"
@@ -38,11 +38,55 @@
           <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
           <path d="M8 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
+        <span v-if="pendingCount > 0" class="todo-badge" aria-label="Tâches en attente">{{ pendingCount }}</span>
       </button>
+
+      <!-- Mini To-Do Preview Sidebar -->
+      <div v-if="miniTasks.length" class="todo-mini-panel" aria-label="Aperçu des tâches">
+        <ul>
+          <li v-for="t in miniTasks" :key="t.id" class="mini-item" :title="t.title + ' · ' + t.durationMin + ' min'">
+            <div class="mini-stack">
+              <button class="mini-check" :style="{ borderColor: colorForTask(t), background: t.done ? colorForTask(t) : 'transparent', color: t.done ? '#fff' : colorForTask(t) }" @click="todoStore.toggleDone(t.id)">
+                <template v-if="t.done">
+                  <span>✓</span>
+                </template>
+                <template v-else>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/>
+                    <path d="M8 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </template>
+              </button>
+              <div class="mini-chronos" :aria-label="t.durationMin + ' minutes'">
+                <i v-for="(piece, idx) in chronoPieces(t.durationMin)" :key="idx" class="icon icon-chrono" :class="piece" :style="{ backgroundColor: colorForTask(t) }"></i>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
     </div>
 
-    <!-- Bottom-Left Corner: Music -->
-    <div class="corner-container corner-bottom-left">
+    <!-- To-Do Centered Modal -->
+    <div v-if="todoModalVisible" class="todo-overlay" @click="closeTodo"></div>
+    <div class="todo-modal-panel" :class="{ visible: todoModalVisible }" role="dialog" aria-modal="true" aria-label="Panneau To-Do">
+      <div class="selector-header">
+        <h3>To-Do</h3>
+        <button class="open-settings" title="ouvrir dans paramètres" aria-label="ouvrir dans paramètres" @click="openSettings">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="3.5" y="3.5" width="12" height="12" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+            <path d="M13 11h7v9H11v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M13 11L20 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button @click="closeTodo" class="close-selector">×</button>
+      </div>
+      <div class="selector-content">
+        <TodoPanel />
+      </div>
+    </div>
+
+    <!-- Bottom-Left Corner: Music (hidden; handled by MusicPlayerCompact) -->
+    <div v-if="false" class="corner-container corner-bottom-left">
       <!-- Music Button -->
       <button
         class="corner-button"
@@ -172,16 +216,30 @@
         </svg>
       </button>
     </div>
+
+    <!-- Mood Buttons -->
+    <div class="mood-buttons" v-show="!todoModalVisible" :class="{ behind: todoModalVisible }">
+      <!-- Home Mood Button -->
+      <button class="mood-button" title="Mode Accueil" aria-label="Mode Accueil"><span class="icon icon-home" aria-hidden="true"></span></button>
+      <!-- Ambience Mood Button (Lotus icon) -->
+      <button class="mood-button" title="Mode Ambiance" aria-label="Mode Ambiance"><span class="icon icon-ambience" aria-hidden="true"></span></button>
+      <!-- Focus Mood Button (Timer icon) -->
+      <button class="mood-button active" title="Mode Focus" aria-label="Mode Focus"><span class="icon icon-focus" aria-hidden="true"></span></button>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useAppStore } from '../stores/appStore'
+import { useTodoStore } from '../stores/todoStore'
+import TodoPanel from './panels/TodoPanel.vue'
 
 const store = useAppStore()
+const todoStore = useTodoStore()
 const musicPlayerVisible = ref(false)
 const musicSelectorVisible = ref(false)
+const todoModalVisible = ref(false)
 const vinylSlideOut = ref(false)
 const playerId = ref(Math.random().toString(36).substr(2, 9))
 const youtubePlayer = ref(null)
@@ -224,6 +282,22 @@ const extractedVideoId = computed(() => {
   return currentVideoId.value
 })
 
+const pendingCount = computed(() => todoStore.pendingCount)
+
+// Compact list for the mini To-Do preview (active only, first 6)
+const miniTasks = computed(() => todoStore.activeTasks.slice(0, 6))
+
+function colorForTask(t) {
+  return todoStore.colorForTask(t)
+}
+
+function chronoPieces(min) {
+  if (min <= 30) return ['half']
+  if (min <= 60) return ['full']
+  if (min <= 90) return ['full', 'half']
+  return ['full', 'full']
+}
+
 function openSettings() {
   store.setActiveTab('timer')
   if (!store.sidebarOpen) {
@@ -244,11 +318,34 @@ function openMusic() {
 }
 
 function openTodo() {
-  store.setActiveTab('todo')
-  if (!store.sidebarOpen) {
-    store.toggleSidebar()
+  // Open centered To-Do modal WITHOUT touching the sidebar
+  todoModalVisible.value = !todoModalVisible.value
+  toggleTodoGlobalClass()
+}
+
+function closeTodo() {
+  todoModalVisible.value = false
+  toggleTodoGlobalClass()
+}
+
+function handleKeydown(e) {
+  if (e.key === 'Escape' && todoModalVisible.value) {
+    e.stopPropagation()
+    closeTodo()
   }
 }
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+})
 
 function toggleMusicSelector() {
   musicSelectorVisible.value = !musicSelectorVisible.value
@@ -432,7 +529,7 @@ onUnmounted(() => {
 }
 
 .corner-middle-left {
-  top: 50%;
+  top: 40%;
   left: 20px;
   transform: translateY(-50%);
   flex-direction: column;
@@ -484,6 +581,54 @@ onUnmounted(() => {
   border-color: var(--color-primary, #8B5CF6);
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* 15" desktop optimization (common heights <= 820px) */
+@media (max-height: 820px) and (min-width: 1024px) {
+  .corner-container {
+    gap: 6px;
+  }
+
+  .corner-button {
+    width: 44px;
+    height: 44px;
+    backdrop-filter: blur(14px);
+  }
+
+  .corner-bottom-left {
+    bottom: 16px;
+    left: 18px;
+  }
+
+  .corner-bottom-right {
+    bottom: 16px;
+    right: 18px;
+  }
+
+  .corner-middle-left {
+    top: 38%;
+    left: 18px;
+  }
+
+  .vinyl-player {
+    width: 230px;
+  }
+
+  .vinyl-player.visible {
+    height: 125px;
+  }
+
+  .album-sleeve {
+    width: 115px;
+    height: 104px;
+    padding: 6px;
+  }
+
+  .vinyl-wrapper {
+    left: 72px;
+    width: 96px;
+    height: 96px;
+  }
 }
 
 /* Responsive design for mobile devices */
@@ -836,6 +981,20 @@ onUnmounted(() => {
   animation: fadeIn 0.3s ease;
 }
 
+/* To-Do Modal Overlay */
+.todo-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  z-index: 10098;
+  animation: fadeIn 0.3s ease;
+  pointer-events: auto;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -866,19 +1025,115 @@ onUnmounted(() => {
   transform: translate(-50%, -50%) scale(1);
 }
 
-.selector-header {
+/* To-Do Modal Panel */
+.todo-modal-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  width: min(640px, 90vw);
+  max-height: 80vh;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.25s ease;
+  opacity: 0;
+  z-index: 10100;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+}
+
+.todo-modal-panel *,
+.todo-modal-panel :deep(*) {
+  pointer-events: auto;
+}
+
+.todo-modal-panel.visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.todo-modal-panel .selector-content {
+  padding: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+/* Badge on To-Do button */
+.todo-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #FF3B30;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  display: inline-flex;
   align-items: center;
-  padding: 16px;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.selector-header {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px 40px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .selector-header h3 {
-  color: rgba(0, 191, 165, 1);
-  font-size: 16px;
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin: 0;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 26px; /* plus grand */
+  font-weight: 1000; /* extra gras */
+  font-family: 'STHupo', 'STHupo Plus', 'SF Pro Rounded', 'Segoe UI Variable Display', 'Segoe UI Rounded', 'Inter', 'Segoe UI', system-ui, sans-serif;
+  color: #ffffff;
+  padding: 10px 22px; /* bulle plus généreuse */
+  border-radius: 999px; /* bulle */
+  background: var(--color-accent, var(--color-primary, #8B5CF6));
+  border: 1px solid rgba(255,255,255,0.65);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.28);
+  text-shadow:
+    0 0 1px rgba(255,255,255,0.75),
+    0 2px 6px rgba(0,0,0,0.28),
+    0 0 12px rgba(139,92,246,0.45); /* halo légèrement diminué */
+}
+
+/* Settings button in To-Do header */
+.selector-header .open-settings {
+  position: absolute;
+  right: 40px; /* leave room for close button at 12px */
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.15);
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(6px);
+  color: #0c0c0c;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+.selector-header .open-settings:hover {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.12);
+  transform: translateY(-1px);
 }
 
 .close-selector {
@@ -893,6 +1148,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   transition: color 0.2s ease;
+  position: absolute;
+  right: 12px;
 }
 
 .close-selector:hover {
@@ -900,7 +1157,57 @@ onUnmounted(() => {
 }
 
 .selector-content {
-  padding: 16px;
+  padding: 16px 16px 28px;
+  color: #0c0c0c;
+}
+
+/* Mini To-Do preview under To-Do button */
+.todo-mini-panel {
+  --todo-button-size: 48px; /* fallback if not defined elsewhere */
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 14px;
+  width: var(--todo-button-size);
+  backdrop-filter: blur(10px);
+}
+.todo-mini-panel ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.mini-item { display: flex; align-items: center; justify-content: center; }
+.mini-stack { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.mini-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.6); background: transparent; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; }
+.mini-chronos { display: inline-flex; gap: 2px; }
+.icon { width: 12px; height: 12px; background-color: rgba(255,255,255,0.9); display: inline-block; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; -webkit-mask-size: contain; mask-repeat: no-repeat; mask-position: center; mask-size: contain; }
+.icon-chrono { -webkit-mask-image: url('/assets/icons/focus%20icon.svg'); mask-image: url('/assets/icons/focus%20icon.svg'); }
+.icon.half { clip-path: inset(0 50% 0 0); }
+
+/* Keep To-Do button above overlay/modal so it is not blurred */
+.corner-container.corner-middle-left .corner-button {
+  position: relative;
+  z-index: 10101;
+  backdrop-filter: none !important;
+  filter: none !important;
+}
+
+/* Ensure the parent container escapes lower stacking context when modal is open */
+:global(.todo-open) .corner-container.corner-middle-left {
+  z-index: 10102 !important;
+}
+
+/* Make active To-Do button opaque and crisp (no perceived blur thru transparency) */
+.corner-container.corner-middle-left .corner-button.active {
+  background: #ffffff;
+  color: #0c0c0c;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+/* While To-Do modal is open, prevent music player from intercepting events */
+:global(.todo-open) .music-player-panel,
+:global(.todo-open) .player-content,
+:global(.todo-open) .player-content *,
+:global(.todo-open) .player-content iframe,
+:global(.todo-open) .quick-playlists {
+  pointer-events: none !important;
 }
 
 .url-input-section,
