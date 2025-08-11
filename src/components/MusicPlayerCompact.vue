@@ -134,8 +134,8 @@
           </div>
         </div>
 
-        <!-- Spotify/Deezer Embedded Player -->
-        <div v-else-if="store.selectedMusicSource?.type === 'spotify' || store.selectedMusicSource?.type === 'deezer'" class="embedded-player">
+        <!-- Spotify Embedded Player -->
+        <div v-else-if="store.selectedMusicSource?.type === 'spotify'" class="embedded-player">
           <iframe 
             :src="getEmbedUrl()"
             :width="getPlayerWidth()" 
@@ -145,6 +145,30 @@
             allow="encrypted-media; clipboard-write"
             loading="lazy"
           ></iframe>
+        </div>
+
+        <!-- Deezer Embedded Player with Vinyl -->
+        <div v-else-if="store.selectedMusicSource?.type === 'deezer'" class="deezer-player-container">
+          <div class="embedded-player">
+            <iframe 
+              :src="getEmbedUrl()"
+              :width="getPlayerWidth()" 
+              :height="getPlayerHeight()"
+              frameborder="0"
+              allowtransparency="true"
+              allow="encrypted-media; clipboard-write"
+              loading="lazy"
+            ></iframe>
+          </div>
+          
+          <!-- Vinyl Element Below Widget -->
+          <div class="deezer-vinyl-wrapper">
+            <img 
+              :class="['vinyl-record', 'deezer-vinyl', { 'is-spinning': isPlaying }]" 
+              src="/assets/icons/vinyle.png" 
+              alt="Disque vinyle"
+            />
+          </div>
         </div>
 
         <!-- Track Info -->
@@ -335,7 +359,7 @@ function getTrackStatus() {
   if (isPlaying.value) {
     return 'Playing'
   } else {
-    return 'Paused'
+    return 'Ready'
   }
 }
 
@@ -354,6 +378,10 @@ watch(() => store.selectedMusicSource, (newSource) => {
     setTimeout(() => {
       loadYouTubeAPI()
     }, 100)
+  } else if (newSource && newSource.type === 'deezer') {
+    // For Deezer, assume playing state (since we can't detect iframe playback)
+    isPlaying.value = true
+    store.musicPlaying = true
   }
 }, { deep: true })
 
@@ -697,6 +725,33 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   max-width: 100%;
   height: auto;
+}
+
+/* Deezer player with vinyl */
+.deezer-player-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.deezer-vinyl-wrapper {
+  width: 320px; /* Match the Deezer widget width */
+  height: 80px; /* Partial vinyl showing below */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  position: relative;
+  overflow: hidden;
+}
+
+.vinyl-record.deezer-vinyl {
+  width: 280px; /* Slightly smaller than widget for visual balance */
+  height: 280px;
+  animation: spin 10s linear infinite;
+  animation-play-state: running; /* Always spinning when visible */
+  position: relative;
+  top: -100px; /* Move up to show only bottom portion */
 }
 
 .current-track {

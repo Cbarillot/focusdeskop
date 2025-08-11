@@ -618,7 +618,7 @@ const themes = ref({
     {
       name: 'Warm Melancholia',
       url: 'https://link.deezer.com/s/30I4s94Syhp5iuS3T0NW9',
-      widgetUrl: 'https://widget.deezer.com/widget/light/playlist/8940192602?tracklist=false',
+      widgetUrl: 'https://widget.deezer.com/widget/light/playlist/11649050864?tracklist=false',
       id: 'warm-melancholia'
     },
     {
