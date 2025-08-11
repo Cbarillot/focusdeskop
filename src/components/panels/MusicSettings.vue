@@ -221,31 +221,39 @@ import UniversalMusic from '../UniversalMusic.vue'
 
 const store = useAppStore()
 
-// Deezer playlists with direct links
+// Deezer playlists with direct links and widget URLs
 const deezerPlaylists = ref([
   {
     id: 1,
+    name: 'Warm Melancholia',
     title: 'Warm Melancholia',
     description: 'Atmospheric and emotional tracks',
-    url: 'https://link.deezer.com/s/30I4s94Syhp5iuS3T0NW9'
+    url: 'https://link.deezer.com/s/30I4s94Syhp5iuS3T0NW9',
+    widgetUrl: 'https://widget.deezer.com/widget/light/playlist/8940192602?tracklist=false'
   },
   {
     id: 2,
+    name: 'Classical Music',
     title: 'Classical Music',
     description: 'Timeless classical compositions',
-    url: 'https://link.deezer.com/s/30I4sTHKDNbVCXriMGGJY'
+    url: 'https://link.deezer.com/s/30I4sTHKDNbVCXriMGGJY',
+    widgetUrl: 'https://widget.deezer.com/widget/light/playlist/8940192602?tracklist=false'
   },
   {
     id: 3,
-    title: 'Dance Music',
+    name: 'Dance, bitch',
+    title: 'Dance, bitch',
     description: 'Energetic beats for focus',
-    url: 'https://link.deezer.com/s/30I4tfQt1D3eTJ7FZKjpn'
+    url: 'https://link.deezer.com/s/30I4tfQt1D3eTJ7FZKjpn',
+    widgetUrl: 'https://widget.deezer.com/widget/light/playlist/13367781383?tracklist=false'
   },
   {
     id: 4,
-    title: 'Coup de Coeur',
+    name: 'Favorites',
+    title: 'Favorites', 
     description: 'Handpicked favorites',
-    url: 'https://link.deezer.com/s/30HLLIhq7W7gERuNFubDG'
+    url: 'https://link.deezer.com/s/30HLLIhq7W7gERuNFubDG',
+    widgetUrl: 'https://widget.deezer.com/widget/light/playlist/1087888711?tracklist=false'
   }
 ])
 
@@ -367,13 +375,15 @@ function loadLocalMusic(event) {
 // Fonctions pour Deezer
 function openDeezerPlaylist(url) {
   // Find the playlist details for a better title
-  const playlist = store.deezerPlaylists.find(p => p.url === url)
+  const playlist = deezerPlaylists.value.find(p => p.url === url)
   
   // Create the source object for the new workflow
   const source = {
     type: 'deezer',
     url: url,
-    title: playlist?.name || 'Deezer Playlist',
+    widgetUrl: playlist?.widgetUrl, // Include widget URL for embedded player
+    title: playlist?.title || playlist?.name || 'Deezer Playlist',
+    name: playlist?.name || playlist?.title || 'Deezer Playlist',
     platform: 'deezer'
   }
   

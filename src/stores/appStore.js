@@ -618,22 +618,26 @@ const themes = ref({
     {
       name: 'Warm Melancholia',
       url: 'https://link.deezer.com/s/30I4s94Syhp5iuS3T0NW9',
+      widgetUrl: 'https://widget.deezer.com/widget/light/playlist/8940192602?tracklist=false',
       id: 'warm-melancholia'
     },
     {
       name: 'Classical Music', 
       url: 'https://link.deezer.com/s/30I4sTHKDNbVCXriMGGJY',
+      widgetUrl: 'https://widget.deezer.com/widget/light/playlist/8940192602?tracklist=false',
       id: 'classical-music'
     },
     {
-      name: 'Dance Music',
+      name: 'Dance, bitch',
       url: 'https://link.deezer.com/s/30I4tfQt1D3eTJ7FZKjpn', 
+      widgetUrl: 'https://widget.deezer.com/widget/light/playlist/13367781383?tracklist=false',
       id: 'dance-music'
     },
     {
-      name: 'Coup de Coeur',
+      name: 'Favorites',
       url: 'https://link.deezer.com/s/30HLLIhq7W7gERuNFubDG',
-      id: 'coup-de-coeur'
+      widgetUrl: 'https://widget.deezer.com/widget/light/playlist/1087888711?tracklist=false',
+      id: 'favorites'
     }
   ])
 
@@ -725,8 +729,13 @@ const themes = ref({
       setMusicUrl(source.url) 
       currentTrack.value = source.title || source.name
     } else if (source.type === 'deezer') {
-      setMusicUrl(source.url)
+      // Use widget URL if available, otherwise use standard URL
+      const urlToUse = source.widgetUrl || source.url
+      setMusicUrl(urlToUse)
       currentTrack.value = source.title || source.name
+      // Store both URLs for different use cases
+      selectedMusicSource.value.widgetUrl = source.widgetUrl
+      selectedMusicSource.value.url = source.url
     } else if (source.type === 'local') {
       localAudioFile.value = source
       currentTrack.value = source.name

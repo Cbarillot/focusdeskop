@@ -138,11 +138,11 @@
         <div v-else-if="store.selectedMusicSource?.type === 'spotify' || store.selectedMusicSource?.type === 'deezer'" class="embedded-player">
           <iframe 
             :src="getEmbedUrl()"
-            width="100%" 
-            height="152"
+            :width="getPlayerWidth()" 
+            :height="getPlayerHeight()"
             frameborder="0"
             allowtransparency="true"
-            allow="encrypted-media"
+            allow="encrypted-media; clipboard-write"
             loading="lazy"
           ></iframe>
         </div>
@@ -302,11 +302,30 @@ function getEmbedUrl() {
       return `https://open.spotify.com/embed/${type}/${id}?utm_source=generator`
     }
   } else if (store.selectedMusicSource.type === 'deezer') {
-    // Handle Deezer embed (may need external link due to limitations)
-    return store.selectedMusicSource.url
+    // Use widget URL if available, otherwise fallback to regular URL
+    return store.selectedMusicSource.widgetUrl || store.selectedMusicSource.url
   }
   
   return store.selectedMusicSource.url
+}
+
+// Sizing functions based on user requirements
+function getPlayerWidth() {
+  if (store.selectedMusicSource.type === 'deezer') {
+    return '320'  // 300-350px recommended, using 320px
+  } else if (store.selectedMusicSource.type === 'spotify') {
+    return '300'  // 300-380px recommended
+  }
+  return '280'  // Default width for compact player
+}
+
+function getPlayerHeight() {
+  if (store.selectedMusicSource.type === 'deezer') {
+    return '320'  // 300-350px recommended, square format
+  } else if (store.selectedMusicSource.type === 'spotify') {
+    return '120'  // Mini player height (80-120px)
+  }
+  return '152'  // Default height
 }
 
 // Status Functions
@@ -425,7 +444,7 @@ onBeforeUnmount(() => {
 }
 
 .music-player-panel {
-  width: 280px;
+  width: 340px; /* Increased to accommodate Deezer widget (320px + padding) */
   background: rgba(255, 255, 255, 0.06); /* very light white, almost transparent */
   backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.25);
@@ -507,8 +526,8 @@ onBeforeUnmount(() => {
 }
 
 .album-sleeve {
-  width: 120px;
-  aspect-ratio: 1 / 1;
+  width: 180px; /* Updated for YouTube 16:9 ratio (320px would be too wide for compact) */
+  aspect-ratio: 16 / 9; /* YouTube 16:9 ratio */
   background: #ffffff; /* opaque white frame */
   border: 2px solid rgba(255,255,255,0.6); /* subtle white border */
   border-radius: 14px;
@@ -528,10 +547,10 @@ onBeforeUnmount(() => {
 }
 
 .vinyl-wrapper {
-  width: 120px;
-  aspect-ratio: 1 / 1;
+  width: 180px;
+  aspect-ratio: 1 / 1; /* Keep vinyl square */
   transition: transform 0.4s ease-out;
-  margin-left: -70px; /* deeper under sleeve */
+  margin-left: -100px; /* deeper under sleeve, adjusted for larger sleeve */
   position: relative;
   z-index: 1; /* behind sleeve */
   pointer-events: none; /* avoid blocking interactions */
@@ -670,6 +689,14 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   overflow: hidden;
   margin-bottom: 12px;
+  display: flex;
+  justify-content: center; /* Center the iframe */
+}
+
+.embedded-player iframe {
+  border-radius: 8px;
+  max-width: 100%;
+  height: auto;
 }
 
 .current-track {
@@ -713,7 +740,16 @@ onBeforeUnmount(() => {
   }
   
   .music-player-panel {
-    width: 260px;
+    width: 320px; /* Slightly reduced for mobile */
+  }
+  
+  .album-sleeve {
+    width: 160px; /* Smaller on mobile */
+  }
+  
+  .vinyl-wrapper {
+    width: 160px;
+    margin-left: -90px;
   }
 }
 
@@ -724,7 +760,16 @@ onBeforeUnmount(() => {
   }
   
   .music-player-panel {
-    width: 240px;
+    width: 280px; /* Further reduced for small screens */
+  }
+  
+  .album-sleeve {
+    width: 140px;
+  }
+  
+  .vinyl-wrapper {
+    width: 140px;
+    margin-left: -80px;
   }
   
   .player-header {
