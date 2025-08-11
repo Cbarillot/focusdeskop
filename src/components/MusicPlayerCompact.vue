@@ -346,26 +346,61 @@ function getEmbedUrl() {
   return store.selectedMusicSource.url
 }
 
-// Sizing functions - significantly reduced size as requested (divide by 2)
+// Enhanced sizing functions - respects recommended ranges (320-400px width, 180-400px height)
 function getPlayerWidth() {
+  const baseSize = getBasePlayerSize()
+  
   if (store.selectedMusicSource.type === 'deezer') {
-    return '140'  // Significantly reduced square format (280/2)
+    return Math.min(400, Math.max(320, baseSize)).toString() // Square format within range
   } else if (store.selectedMusicSource.type === 'spotify') {
-    return '200'  // Reduced from 300px for better proportions
+    return Math.min(380, Math.max(300, baseSize * 1.4)).toString() // Wider for Spotify
+  } else if (store.selectedMusicSource.type === 'youtube') {
+    return Math.min(400, Math.max(320, baseSize * 1.2)).toString() // 16:9 friendly
   }
-  return '140'  // Significantly reduced width for YouTube (280/2)
+  return baseSize.toString()
 }
 
 function getPlayerHeight() {
+  const baseSize = getBasePlayerSize()
+  
   if (store.selectedMusicSource.type === 'deezer') {
-    return '140'  // Square format matching width (280/2)
+    return Math.min(400, Math.max(320, baseSize)).toString() // Square format
   } else if (store.selectedMusicSource.type === 'spotify') {
-    return '80'   // Reduced mini player height
+    return '120' // Mini player height as recommended
+  } else if (store.selectedMusicSource.type === 'youtube') {
+    const width = parseInt(getPlayerWidth())
+    return Math.min(400, Math.max(180, Math.round(width * 9/16))).toString() // 16:9 ratio
   }
-  return '140'  // Significantly reduced square format for YouTube (280/2)
+  return baseSize.toString()
 }
 
-// Status Functions
+// Dynamic base size calculation based on screen size and aspect ratio
+function getBasePlayerSize() {
+  if (typeof window === 'undefined') return 140
+  
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+  const aspectRatio = vw / vh
+  
+  // Wide screens (ratio > 1.4) can handle larger players
+  if (aspectRatio > 1.4 && vw >= 1200) {
+    return 160 // Larger for wide screens
+  }
+  // Narrow screens (ratio < 1.4) need smaller players  
+  else if (aspectRatio <= 1.4) {
+    return 120 // Smaller for narrow screens
+  }
+  // Mobile screens
+  else if (vw <= 768) {
+    return 110 // Mobile size
+  }
+  // Default size
+  else {
+    return 140
+  }
+}
+
+// Enhanced status and reactive sizing functions
 function getTrackStatus() {
   if (!store.selectedMusicSource) return ''
   
@@ -373,6 +408,29 @@ function getTrackStatus() {
     return 'Playing'
   } else {
     return 'Ready'
+  }
+}
+
+// Reactive panel width calculation
+function getPanelWidth() {
+  if (!store.selectedMusicSource) {
+    return '240px' // Default width for "let's play something" state
+  }
+  
+  const playerWidth = parseInt(getPlayerWidth())
+  const vinylWidth = getBasePlayerSize()
+  const totalWidth = playerWidth + (vinylWidth * 0.5) + 32 // 32px margin
+  
+  return Math.max(240, totalWidth) + 'px'
+}
+
+// Update panel width reactively
+function updatePanelSize() {
+  if (typeof window !== 'undefined') {
+    const panel = document.querySelector('.music-player-panel')
+    if (panel) {
+      panel.style.width = getPanelWidth()
+    }
   }
 }
 
@@ -402,10 +460,26 @@ watch(() => store.musicPlaying, (playing) => {
   isPlaying.value = playing
 })
 
+// Watch for window resize to update panel sizing
+let resizeTimeout
+function handleResize() {
+  clearTimeout(resizeTimeout)
+  resizeTimeout = setTimeout(() => {
+    updatePanelSize()
+  }, 100)
+}
+
 onMounted(() => {
   // Only load YouTube API if we have a YouTube source
   if (store.selectedMusicSource?.type === 'youtube') {
     loadYouTubeAPI()
+  }
+  
+  // Add resize listener for responsive sizing
+  if (typeof window !== 'undefined') {
+    window.addEventListener('resize', handleResize)
+    // Initial panel size update
+    updatePanelSize()
   }
 })
 
@@ -418,6 +492,11 @@ onBeforeUnmount(() => {
     console.warn('Error destroying YouTube player:', e)
   }
   ytPlayer = null
+  
+  // Remove resize listener
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', handleResize)
+  }
 })
 </script>
 
@@ -881,7 +960,7 @@ onBeforeUnmount(() => {
   font-style: italic;
 }
 
-/* Responsive design */
+/* Responsive design - Aspect ratio based sizing */
 @media (max-width: 768px) {
   .music-player-compact {
     bottom: 90px;
@@ -923,6 +1002,64 @@ onBeforeUnmount(() => {
   .album-cover-frame .embedded-player iframe {
     width: 110px;
     height: 110px;
+  }
+}
+
+/* Aspect ratio responsive design - Square or tall screens */
+@media (max-aspect-ratio: 1.4/1) {
+  .music-player-panel {
+    width: 200px; /* Reduced width for narrow screens */
+  }
+  
+  .album-sleeve {
+    width: 120px; /* Smaller for narrow screens */
+    height: 120px;
+  }
+  
+  .vinyl-wrapper {
+    width: 120px;
+    height: 120px;
+    margin-left: -40px;
+  }
+  
+  .deezer-vinyl-wrapper {
+    width: 120px;
+    height: 120px;
+    margin-left: -40px;
+  }
+  
+  .default-state {
+    width: 160px; /* Smaller default state for narrow screens */
+    height: 140px;
+  }
+}
+
+/* Wide screen optimization */
+@media (min-aspect-ratio: 1.4/1) and (min-width: 1200px) {
+  .music-player-panel {
+    width: 280px; /* Larger on wide screens */
+  }
+  
+  .album-sleeve {
+    width: 160px; /* Slightly larger for wide screens */
+    height: 160px;
+  }
+  
+  .vinyl-wrapper {
+    width: 160px;
+    height: 160px;
+    margin-left: -60px;
+  }
+  
+  .deezer-vinyl-wrapper {
+    width: 160px;
+    height: 160px;
+    margin-left: -60px;
+  }
+  
+  .default-state {
+    width: 220px; /* Larger default state for wide screens */
+    height: 180px;
   }
 }
 

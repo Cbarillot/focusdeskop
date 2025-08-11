@@ -603,6 +603,14 @@ const themes = ref({
     musicUrl.value = url
     musicError.value = ''
     musicPlatform.value = detectMusicPlatform(url)
+    
+    // Auto-convert Deezer URLs to widget format
+    if (musicPlatform.value === 'deezer') {
+      const widgetUrl = convertDeezerToWidget(url);
+      if (widgetUrl !== url) {
+        console.log('Auto-converted Deezer URL to widget format');
+      }
+    }
   }
 
   function detectMusicPlatform(url) {
@@ -611,6 +619,37 @@ const themes = ref({
     if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube'
     if (url.includes('soundcloud.com')) return 'soundcloud'
     return ''
+  }
+
+  // Enhanced Deezer URL conversion function
+  function convertDeezerToWidget(url) {
+    try {
+      // Handle various Deezer URL formats and convert to widget URLs
+      if (url.includes('deezer.com')) {
+        // Extract playlist/album/track ID from various formats
+        let playlistMatch = url.match(/playlist\/(\d+)/);
+        let albumMatch = url.match(/album\/(\d+)/);
+        let trackMatch = url.match(/track\/(\d+)/);
+        
+        if (playlistMatch) {
+          return `https://widget.deezer.com/widget/light/playlist/${playlistMatch[1]}?tracklist=false`;
+        } else if (albumMatch) {
+          return `https://widget.deezer.com/widget/light/album/${albumMatch[1]}?tracklist=false`;
+        } else if (trackMatch) {
+          return `https://widget.deezer.com/widget/light/track/${trackMatch[1]}?tracklist=false`;
+        }
+        
+        // Handle share links (link.deezer.com)
+        if (url.includes('link.deezer.com')) {
+          console.warn('Deezer share links need manual conversion. Please provide the direct Deezer URL.');
+          return url; // Return original URL, let user handle manually
+        }
+      }
+      return url;
+    } catch (error) {
+      console.warn('Error converting Deezer URL:', error);
+      return url;
+    }
   }
 
   // Predefined playlists - Both Deezer and YouTube options
@@ -729,12 +768,17 @@ const themes = ref({
       setMusicUrl(source.url) 
       currentTrack.value = source.title || source.name
     } else if (source.type === 'deezer') {
-      // Use widget URL if available, otherwise use standard URL
-      const urlToUse = source.widgetUrl || source.url
+      // Auto-convert Deezer URLs to widget format if needed
+      let urlToUse = source.widgetUrl || source.url
+      if (!source.widgetUrl && source.url) {
+        urlToUse = convertDeezerToWidget(source.url)
+        source.widgetUrl = urlToUse // Store the converted widget URL
+      }
+      
       setMusicUrl(urlToUse)
       currentTrack.value = source.title || source.name
       // Store both URLs for different use cases
-      selectedMusicSource.value.widgetUrl = source.widgetUrl
+      selectedMusicSource.value.widgetUrl = urlToUse
       selectedMusicSource.value.url = source.url
     } else if (source.type === 'local') {
       localAudioFile.value = source
@@ -897,6 +941,7 @@ const themes = ref({
     applyThemeColors,
     setMusicUrl,
     detectMusicPlatform,
+    convertDeezerToWidget,
     playDeezerPlaylist,
     playYouTubePlaylist,
     stopMusic,
