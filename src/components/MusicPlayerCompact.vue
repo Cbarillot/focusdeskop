@@ -891,7 +891,7 @@ function handleWindowResize() {
 }
 
 .music-player-panel {
-  width: 240px; /* Default width - can be overridden by user resizing */
+  width: 280px; /* Default width - can be overridden by user resizing */
   min-width: 200px;
   max-width: 600px;
   background: rgba(255, 255, 255, 0.06); /* very light white, almost transparent */
