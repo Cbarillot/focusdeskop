@@ -658,8 +658,8 @@ const sectionOpen = ref({
   gradients: true,
   images: true,
   animated: true,
-  youtube: true,
-  customGradient: true,
+  youtube: false,
+  customGradient: false,
   gradientPresets: true,
 })
 
