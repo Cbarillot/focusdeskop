@@ -594,7 +594,7 @@ onBeforeUnmount(() => {
   }
 
   .album-sleeve.youtube-player {
-    margin-left: 15px; /* Proportional adjustment for compact desktop */
+    margin-left: 10px; /* Reduced to prevent overflow on compact desktop */
   }
 
   .vinyl-wrapper {
@@ -604,11 +604,17 @@ onBeforeUnmount(() => {
   }
 
   .vinyl-wrapper.youtube-vinyl {
-    margin-left: -55px; /* Proportional adjustment for compact desktop */
+    margin-left: -50px; /* Reduced to prevent overflow while maintaining coverage */
   }
 
   .deezer-vinyl-wrapper {
-    width: 120px;
+    width: 120px; /* Match album sleeve size for compact desktop */
+    height: 120px;
+    margin-left: -40px;
+  }
+  
+  .deezer-vinyl-wrapper.deezer-vinyl-enhanced {
+    width: 120px; /* Ensure vinyl matches widget size exactly */
     height: 120px;
     margin-left: -40px;
   }
@@ -620,7 +626,7 @@ onBeforeUnmount(() => {
 }
 
 .music-player-panel {
-  width: 240px; /* Accommodate default state (200px) and smaller widgets (140px) */
+  width: 260px; /* Increased to better accommodate YouTube player and volume control */
   background: rgba(255, 255, 255, 0.06); /* very light white, almost transparent */
   backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.25);
@@ -748,7 +754,7 @@ onBeforeUnmount(() => {
 
 /* YouTube player specific positioning */
 .album-sleeve.youtube-player {
-  margin-left: 20px; /* Shift YouTube player to the right */
+  margin-left: 10px; /* Reduced margin to prevent overflow while maintaining positioning */
 }
 
 .sleeve-inner {
@@ -772,7 +778,7 @@ onBeforeUnmount(() => {
 
 /* YouTube vinyl positioning - cover about half of the player */
 .vinyl-wrapper.youtube-vinyl {
-  margin-left: -70px; /* Increased overlap to cover about half of the YouTube player */
+  margin-left: -60px; /* Reduced overlap to prevent player cutoff while maintaining half coverage */
 }
 
 .music-player-panel:hover .vinyl-wrapper:not(.is-playing) {
@@ -1008,18 +1014,17 @@ onBeforeUnmount(() => {
 }
 
 .deezer-vinyl-wrapper {
-  width: 140px; /* Match significantly reduced widget size exactly for proper proportions */
-  height: 140px; /* Ensure vinyl doesn't exceed widget height */
+  width: 140px; /* Base size, will be overridden by responsive classes */
+  height: 140px; /* Base size, will be overridden by responsive classes */
   position: relative;
   z-index: 1;
   margin-left: -50px; /* Proportionally reduced overlap consistent with YouTube layout */
   pointer-events: none; /* Avoid blocking widget interactions */
 }
 
-/* Enhanced Deezer vinyl sizing to match player height */
+/* Enhanced Deezer vinyl sizing to match player height exactly */
 .deezer-vinyl-wrapper.deezer-vinyl-enhanced {
-  width: 140px; /* Match widget dimensions exactly */
-  height: 140px; /* Match widget height exactly */
+  /* Size will match the Deezer widget exactly through responsive classes */
   margin-left: -50px; /* Optimal overlap for album cover effect */
 }
 
@@ -1078,7 +1083,7 @@ onBeforeUnmount(() => {
   }
   
   .music-player-panel {
-    width: 180px; /* Proportionally reduced for mobile */
+    width: 200px; /* Increased to accommodate better layouts on mobile */
   }
   
   .album-sleeve {
@@ -1087,7 +1092,7 @@ onBeforeUnmount(() => {
   }
   
   .album-sleeve.youtube-player {
-    margin-left: 12px; /* Proportional adjustment for mobile */
+    margin-left: 8px; /* Reduced to prevent overflow on mobile */
   }
   
   .vinyl-wrapper {
@@ -1097,7 +1102,7 @@ onBeforeUnmount(() => {
   }
 
   .vinyl-wrapper.youtube-vinyl {
-    margin-left: -45px; /* Proportional adjustment for mobile */
+    margin-left: -40px; /* Reduced to prevent overflow while maintaining coverage */
   }
   
   /* Adjust Deezer layout for mobile */
@@ -1107,7 +1112,13 @@ onBeforeUnmount(() => {
   }
   
   .deezer-vinyl-wrapper {
-    width: 110px;
+    width: 110px; /* Match album sleeve and widget size for mobile */
+    height: 110px;
+    margin-left: 0;
+  }
+  
+  .deezer-vinyl-wrapper.deezer-vinyl-enhanced {
+    width: 110px; /* Ensure vinyl matches widget size exactly */
     height: 110px;
     margin-left: 0;
   }
@@ -1130,7 +1141,7 @@ onBeforeUnmount(() => {
   }
   
   .album-sleeve.youtube-player {
-    margin-left: 15px; /* Proportional adjustment for narrow screens */
+    margin-left: 8px; /* Reduced to prevent overflow on narrow screens */
   }
   
   .vinyl-wrapper {
@@ -1140,7 +1151,7 @@ onBeforeUnmount(() => {
   }
 
   .vinyl-wrapper.youtube-vinyl {
-    margin-left: -55px; /* Proportional adjustment for narrow screens */
+    margin-left: -50px; /* Reduced to prevent overflow while maintaining coverage */
   }
   
   .deezer-vinyl-wrapper {
@@ -1173,7 +1184,7 @@ onBeforeUnmount(() => {
   }
   
   .album-sleeve.youtube-player {
-    margin-left: 25px; /* Proportional adjustment for wide screens */
+    margin-left: 15px; /* Reduced from 25px to prevent overflow on wide screens */
   }
   
   .vinyl-wrapper {
@@ -1183,7 +1194,7 @@ onBeforeUnmount(() => {
   }
 
   .vinyl-wrapper.youtube-vinyl {
-    margin-left: -80px; /* Proportional adjustment for wide screens */
+    margin-left: -70px; /* Reduced from -80px to prevent overflow while maintaining coverage */
   }
   
   .deezer-vinyl-wrapper {
@@ -1211,7 +1222,7 @@ onBeforeUnmount(() => {
   }
   
   .music-player-panel {
-    width: 160px; /* Proportionally reduced for small screens */
+    width: 180px; /* Increased to accommodate better layouts on small screens */
   }
   
   .album-sleeve {
@@ -1220,7 +1231,7 @@ onBeforeUnmount(() => {
   }
   
   .album-sleeve.youtube-player {
-    margin-left: 10px; /* Proportional adjustment for small screens */
+    margin-left: 6px; /* Minimal shift to prevent overflow on small screens */
   }
   
   .vinyl-wrapper {
@@ -1230,7 +1241,7 @@ onBeforeUnmount(() => {
   }
 
   .vinyl-wrapper.youtube-vinyl {
-    margin-left: -40px; /* Proportional adjustment for small screens */
+    margin-left: -35px; /* Reduced to prevent overflow while maintaining coverage */
   }
   
   .player-header {
@@ -1243,7 +1254,12 @@ onBeforeUnmount(() => {
   
   /* Mobile Deezer layout adjustments */
   .deezer-vinyl-wrapper {
-    width: 100px;
+    width: 100px; /* Match album sleeve and widget size for small screens */
+    height: 100px;
+  }
+  
+  .deezer-vinyl-wrapper.deezer-vinyl-enhanced {
+    width: 100px; /* Ensure vinyl matches widget size exactly */
     height: 100px;
   }
   
