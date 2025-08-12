@@ -314,10 +314,20 @@ onBeforeUnmount(() => {
 
 /* Timer Section - positioned top right */
 .timer-section {
-  position: absolute;
+  position: fixed;
   top: 120px;
   right: 40px;
-  z-index: 10;
+  z-index: 100;
+  transition: none; /* Disable transitions when dragging/resizing */
+}
+
+.timer-section.is-dragging {
+  transition: none;
+  z-index: 200; /* Higher z-index when dragging */
+}
+
+.timer-section.is-resizing {
+  transition: none;
 }
 
 .timer-container {
@@ -329,6 +339,106 @@ onBeforeUnmount(() => {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   padding: 24px;
+  cursor: grab; /* Show grab cursor when hovering over draggable areas */
+  position: relative; /* For resize handles positioning */
+  overflow: visible; /* Allow resize handles to be visible outside container */
+}
+
+.timer-container:active {
+  cursor: grabbing;
+}
+
+.is-dragging .timer-container {
+  cursor: grabbing;
+}
+
+.timer-container.resizable {
+  resize: none; /* Disable native resize, use custom handles */
+}
+
+/* Resize handles */
+.resize-handle {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 60;
+}
+
+.timer-container:hover .resize-handle {
+  opacity: 1;
+}
+
+.resize-handle:hover {
+  background: rgba(139, 92, 246, 0.3); /* Primary color for timer */
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+/* Corner handles */
+.resize-handle-nw, .resize-handle-ne, .resize-handle-sw, .resize-handle-se {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.resize-handle-nw {
+  top: -6px;
+  left: -6px;
+  cursor: nw-resize;
+}
+
+.resize-handle-ne {
+  top: -6px;
+  right: -6px;
+  cursor: ne-resize;
+}
+
+.resize-handle-sw {
+  bottom: -6px;
+  left: -6px;
+  cursor: sw-resize;
+}
+
+.resize-handle-se {
+  bottom: -6px;
+  right: -6px;
+  cursor: se-resize;
+}
+
+/* Edge handles */
+.resize-handle-n, .resize-handle-s {
+  height: 4px;
+  left: 20px;
+  right: 20px;
+  border-radius: 2px;
+}
+
+.resize-handle-w, .resize-handle-e {
+  width: 4px;
+  top: 20px;
+  bottom: 20px;
+  border-radius: 2px;
+}
+
+.resize-handle-n {
+  top: -2px;
+  cursor: n-resize;
+}
+
+.resize-handle-s {
+  bottom: -2px;
+  cursor: s-resize;
+}
+
+.resize-handle-w {
+  left: -2px;
+  cursor: w-resize;
+}
+
+.resize-handle-e {
+  right: -2px;
+  cursor: e-resize;
 }
 
 .mode-tabs {
@@ -349,6 +459,8 @@ onBeforeUnmount(() => {
   font-size: 12px;
   font-weight: 500;
   transition: all var(--transition-fast, 0.2s);
+  cursor: pointer;
+  user-select: none; /* Prevent text selection during drag */
 }
 
 .mode-tab:hover {
@@ -398,6 +510,9 @@ onBeforeUnmount(() => {
   font-weight: 600;
   min-width: 80px;
   transition: all 0.3s ease;
+  cursor: pointer;
+  user-select: none; /* Prevent text selection during drag */
+  border: none;
 }
 
 .control-btn.primary {
@@ -426,40 +541,56 @@ onBeforeUnmount(() => {
 /* Responsive Design */
 @media (max-width: 1024px) {
   .timer-section {
-    right: 30px;
-    top: 100px;
+    /* Keep drag functionality on tablets, just adjust initial positioning */
   }
 
   .timer-container {
     max-width: 350px;
     padding: 20px;
   }
+
+  /* Smaller resize handles on tablets */
+  .resize-handle-nw, .resize-handle-ne, .resize-handle-sw, .resize-handle-se {
+    width: 10px;
+    height: 10px;
+  }
 }
 
 @media (max-width: 768px) {
   .timer-section {
-    position: relative;
-    top: auto;
+    /* On mobile, disable positioning but keep drag for repositioning */
+    position: fixed;
+    top: 20px;
+    left: 20px;
     right: auto;
-    display: flex;
-    justify-content: center;
-    margin-top: 40px;
   }
 
   .timer-container {
-    max-width: 100%;
-    padding: 24px;
+    max-width: 300px;
+    padding: 20px;
+  }
+
+  /* Hide edge handles on mobile, keep only corners */
+  .resize-handle-n, .resize-handle-s, .resize-handle-w, .resize-handle-e {
+    display: none;
   }
 }
 
 @media (max-width: 480px) {
   .timer-container {
-    padding: 20px;
+    padding: 16px;
+    max-width: 280px;
   }
 
   .timer-controls {
     flex-direction: column;
     gap: 8px;
+  }
+
+  /* Even smaller handles on small mobile */
+  .resize-handle-nw, .resize-handle-ne, .resize-handle-sw, .resize-handle-se {
+    width: 8px;
+    height: 8px;
   }
 }
 </style>
