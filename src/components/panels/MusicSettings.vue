@@ -221,31 +221,39 @@ import UniversalMusic from '../UniversalMusic.vue'
 
 const store = useAppStore()
 
-// Deezer playlists with direct links
+// Deezer playlists with direct links and widget URLs
 const deezerPlaylists = ref([
   {
     id: 1,
+    name: 'Warm Melancholia',
     title: 'Warm Melancholia',
     description: 'Atmospheric and emotional tracks',
-    url: 'https://link.deezer.com/s/30I4s94Syhp5iuS3T0NW9'
+    url: 'https://link.deezer.com/s/30I4s94Syhp5iuS3T0NW9',
+    widgetUrl: 'https://widget.deezer.com/widget/light/playlist/11649050864?tracklist=false'
   },
   {
     id: 2,
+    name: 'Classical Music',
     title: 'Classical Music',
     description: 'Timeless classical compositions',
-    url: 'https://link.deezer.com/s/30I4sTHKDNbVCXriMGGJY'
+    url: 'https://link.deezer.com/s/30I4sTHKDNbVCXriMGGJY',
+    widgetUrl: 'https://widget.deezer.com/widget/light/playlist/8940192602?tracklist=false'
   },
   {
     id: 3,
-    title: 'Dance Music',
+    name: 'Dance, bitch',
+    title: 'Dance, bitch',
     description: 'Energetic beats for focus',
-    url: 'https://link.deezer.com/s/30I4tfQt1D3eTJ7FZKjpn'
+    url: 'https://link.deezer.com/s/30I4tfQt1D3eTJ7FZKjpn',
+    widgetUrl: 'https://widget.deezer.com/widget/light/playlist/13367781383?tracklist=false'
   },
   {
     id: 4,
-    title: 'Coup de Coeur',
+    name: 'Favorites',
+    title: 'Favorites', 
     description: 'Handpicked favorites',
-    url: 'https://link.deezer.com/s/30HLLIhq7W7gERuNFubDG'
+    url: 'https://link.deezer.com/s/30HLLIhq7W7gERuNFubDG',
+    widgetUrl: 'https://widget.deezer.com/widget/light/playlist/1087888711?tracklist=false'
   }
 ])
 
@@ -305,16 +313,20 @@ function extractYouTubeId(url) {
 function loadPreset(videoId) {
   const preset = youtubePresets.find(p => p.id === videoId)
   if (preset) {
-    // Mettre à jour l'URL dans le store (cela déclenchera la mise à jour du lecteur principal)
-    store.setMusicUrl(preset.url)
-    currentVideoId.value = videoId
-    youtubeUrl.value = preset.url
+    // Create the source object for the new workflow
+    const source = {
+      type: 'youtube',
+      url: preset.url,
+      title: preset.title,
+      platform: 'youtube'
+    }
     
-    // Forcer le rechargement dans le lecteur principal
-    if (window.ytPlayer && typeof window.ytPlayer.loadVideoById === 'function') {
-      window.ytPlayer.loadVideoById(videoId)
-      // Démarrer la lecture automatiquement
-      window.ytPlayer.playVideo()
+    // Send to the front page player via the store
+    store.playSelectedMusic(source)
+    
+    // Close the sidebar
+    if (store.sidebarOpen) {
+      store.toggleSidebar()
     }
   }
 }
@@ -339,16 +351,49 @@ function togglePlayback(event) {
 function loadLocalMusic(event) {
   const file = event.target.files[0]
   if (file) {
-    localAudioSrc.value = URL.createObjectURL(file)
-    store.currentTrack = file.name
-    store.musicPlaying = true
+    const fileUrl = URL.createObjectURL(file)
+    
+    // Create the source object for the new workflow
+    const source = {
+      type: 'local',
+      url: fileUrl,
+      title: file.name,
+      name: file.name,
+      platform: 'local'
+    }
+    
+    // Send to the front page player via the store
+    store.playSelectedMusic(source)
+    
+    // Close the sidebar
+    if (store.sidebarOpen) {
+      store.toggleSidebar()
+    }
   }
 }
 
 // Fonctions pour Deezer
 function openDeezerPlaylist(url) {
-  // Ouvrir la playlist Deezer dans un nouvel onglet
-  window.open(url, '_blank', 'noopener,noreferrer')
+  // Find the playlist details for a better title
+  const playlist = deezerPlaylists.value.find(p => p.url === url)
+  
+  // Create the source object for the new workflow
+  const source = {
+    type: 'deezer',
+    url: url,
+    widgetUrl: playlist?.widgetUrl, // Include widget URL for embedded player
+    title: playlist?.title || playlist?.name || 'Deezer Playlist',
+    name: playlist?.name || playlist?.title || 'Deezer Playlist',
+    platform: 'deezer'
+  }
+  
+  // Send to the front page player via the store
+  store.playSelectedMusic(source)
+  
+  // Close the sidebar  
+  if (store.sidebarOpen) {
+    store.toggleSidebar()
+  }
 }
 </script>
 

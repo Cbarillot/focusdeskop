@@ -5,15 +5,15 @@
     :class="{ 'is-dragging': isDragging, 'is-resizing': isResizing }"
     :style="{ 
       left: playerPosition.x + 'px', 
-      bottom: typeof window !== 'undefined' ? (window.innerHeight - playerPosition.y - 200) + 'px' : '20px'
+      bottom: (window.innerHeight - playerPosition.y - 200) + 'px' 
     }"
   >
-    <!-- Music Button (kept, no toggle) - serves as drag handle -->
+    <!-- Music Button (kept, no toggle) - also serves as drag handle -->
     <button 
       class="music-button drag-handle"
       :class="{ playing: store.musicPlaying }"
       title="Musique - Glisser pour déplacer"
-      @mousedown.left="startDrag"
+      @mousedown="startDrag"
       @click="openMusicSettings"
     >
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -30,7 +30,7 @@
       class="music-player-panel resizable"
       :style="{ 
         width: playerSize.width + 'px', 
-        height: typeof playerSize.height === 'number' ? playerSize.height + 'px' : 'auto' 
+        height: typeof playerSize.height === 'number' ? playerSize.height + 'px' : playerSize.height 
       }"
     >
       <!-- Resize handles -->
@@ -247,17 +247,20 @@ const youtubeVolume = ref(50)
 const audioPlayer = ref(null)
 let ytPlayer = null
 
-// Drag and resize functionality
+// Resizing and dragging functionality
 const isDragging = ref(false)
 const isResizing = ref(false)
 const playerPosition = ref({ x: 20, y: 20 })
 const playerSize = ref({ width: 260, height: 'auto' })
+const minSize = { width: 200, height: 150 }
+const maxSize = { width: 600, height: 500 }
+
+// Refs for DOM elements
 const musicPlayerContainer = ref(null)
 const musicPlayerPanel = ref(null)
 
-// Drag state
+// Drag functionality
 let dragStart = { x: 0, y: 0, playerX: 0, playerY: 0 }
-// Resize state  
 let resizeStart = { x: 0, y: 0, width: 0, height: 0 }
 
 function openMusicSettings() {
@@ -265,7 +268,7 @@ function openMusicSettings() {
   if (!store.sidebarOpen) store.toggleSidebar()
 }
 
-// Drag functionality
+// Dragging functionality
 function startDrag(event) {
   if (isResizing.value) return
   
@@ -284,15 +287,21 @@ function startDrag(event) {
 }
 
 function handleDrag(event) {
-  if (!isDragging.value || typeof window === 'undefined') return
+  if (!isDragging.value) return
   
   const deltaX = event.clientX - dragStart.x
   const deltaY = event.clientY - dragStart.y
   
-  playerPosition.value.x = Math.max(0, Math.min(window.innerWidth - 300, dragStart.playerX + deltaX))
-  playerPosition.value.y = Math.max(0, Math.min(window.innerHeight - 200, dragStart.playerY + deltaY))
+  const newX = Math.max(0, Math.min(window.innerWidth - playerSize.value.width, dragStart.playerX + deltaX))
+  const newY = Math.max(0, Math.min(window.innerHeight - 200, dragStart.playerY + deltaY))
   
-  updatePlayerPosition()
+  playerPosition.value = { x: newX, y: newY }
+  
+  // Apply the new position
+  if (musicPlayerContainer.value) {
+    musicPlayerContainer.value.style.left = newX + 'px'
+    musicPlayerContainer.value.style.bottom = (window.innerHeight - newY - 200) + 'px'
+  }
 }
 
 function endDrag() {
@@ -301,10 +310,9 @@ function endDrag() {
   document.removeEventListener('mouseup', endDrag)
   document.body.style.cursor = ''
   document.body.style.userSelect = ''
-  savePlayerSettings()
 }
 
-// Resize functionality
+// Resizing functionality
 function startResize(event, direction) {
   if (isDragging.value) return
   
@@ -314,9 +322,8 @@ function startResize(event, direction) {
   resizeStart.width = playerSize.value.width
   resizeStart.height = musicPlayerPanel.value?.offsetHeight || 200
   
-  const resizeHandler = (e) => handleResize(e, direction)
-  document.addEventListener('mousemove', resizeHandler)
-  document.addEventListener('mouseup', () => endResize(resizeHandler))
+  document.addEventListener('mousemove', (e) => handleResize(e, direction))
+  document.addEventListener('mouseup', endResize)
   document.body.style.userSelect = 'none'
   
   event.preventDefault()
@@ -333,54 +340,47 @@ function handleResize(event, direction) {
   let newHeight = resizeStart.height
   
   if (direction.includes('right')) {
-    newWidth = Math.max(200, Math.min(600, resizeStart.width + deltaX))
+    newWidth = Math.max(minSize.width, Math.min(maxSize.width, resizeStart.width + deltaX))
   }
   if (direction.includes('left')) {
-    newWidth = Math.max(200, Math.min(600, resizeStart.width - deltaX))
+    newWidth = Math.max(minSize.width, Math.min(maxSize.width, resizeStart.width - deltaX))
   }
   if (direction.includes('bottom')) {
-    newHeight = Math.max(150, Math.min(500, resizeStart.height + deltaY))
+    newHeight = Math.max(minSize.height, Math.min(maxSize.height, resizeStart.height + deltaY))
   }
   if (direction.includes('top')) {
-    newHeight = Math.max(150, Math.min(500, resizeStart.height - deltaY))
+    newHeight = Math.max(minSize.height, Math.min(maxSize.height, resizeStart.height - deltaY))
   }
   
-  playerSize.value.width = newWidth
-  playerSize.value.height = newHeight
+  playerSize.value = { width: newWidth, height: newHeight }
   
-  updatePlayerSize()
+  // Apply the new size
+  if (musicPlayerPanel.value) {
+    musicPlayerPanel.value.style.width = newWidth + 'px'
+    musicPlayerPanel.value.style.height = newHeight + 'px'
+  }
+  
+  // Update player and vinyl sizes proportionally
+  updatePlayerComponents()
 }
 
-function endResize(resizeHandler) {
+function endResize() {
   isResizing.value = false
-  document.removeEventListener('mousemove', resizeHandler)
+  document.removeEventListener('mousemove', handleResize)
   document.removeEventListener('mouseup', endResize)
   document.body.style.userSelect = ''
-  savePlayerSettings()
 }
 
-// Update functions
-function updatePlayerPosition() {
-  if (musicPlayerContainer.value && typeof window !== 'undefined') {
-    musicPlayerContainer.value.style.left = playerPosition.value.x + 'px'
-    musicPlayerContainer.value.style.bottom = (window.innerHeight - playerPosition.value.y - 200) + 'px'
-  }
-}
-
-function updatePlayerSize() {
-  if (musicPlayerPanel.value) {
-    musicPlayerPanel.value.style.width = playerSize.value.width + 'px'
-    if (typeof playerSize.value.height === 'number') {
-      musicPlayerPanel.value.style.height = playerSize.value.height + 'px'
-    }
-  }
-  
-  // Update child components proportionally
-  setTimeout(() => {
-    const baseSize = Math.min(playerSize.value.width * 0.4, 150)
+// Update player components based on new panel size
+function updatePlayerComponents() {
+  nextTick(() => {
+    // Calculate proportional sizes for album sleeve and vinyl
+    const panelWidth = playerSize.value.width
+    const baseSize = Math.min(panelWidth * 0.5, panelWidth - 80) // Leave room for controls
+    
     const albumSleeves = document.querySelectorAll('.album-sleeve')
-    const vinylWrappers = document.querySelectorAll('.vinyl-wrapper, .deezer-vinyl-wrapper')
-    const iframes = document.querySelectorAll('.embedded-player iframe')
+    const vinylWrappers = document.querySelectorAll('.vinyl-wrapper')
+    const deezerVinylWrappers = document.querySelectorAll('.deezer-vinyl-wrapper')
     
     albumSleeves.forEach(sleeve => {
       sleeve.style.width = baseSize + 'px'
@@ -392,37 +392,18 @@ function updatePlayerSize() {
       vinyl.style.height = baseSize + 'px'
     })
     
+    deezerVinylWrappers.forEach(vinyl => {
+      vinyl.style.width = baseSize + 'px'
+      vinyl.style.height = baseSize + 'px'
+    })
+    
+    // Update iframe sizes for embedded players
+    const iframes = document.querySelectorAll('.embedded-player iframe')
     iframes.forEach(iframe => {
       iframe.style.width = baseSize + 'px'
       iframe.style.height = baseSize + 'px'
     })
-  }, 10)
-}
-
-// Settings persistence
-function savePlayerSettings() {
-  const settings = {
-    position: playerPosition.value,
-    size: playerSize.value
-  }
-  localStorage.setItem('musicPlayerSettings', JSON.stringify(settings))
-}
-
-function loadPlayerSettings() {
-  try {
-    const saved = localStorage.getItem('musicPlayerSettings')
-    if (saved) {
-      const settings = JSON.parse(saved)
-      if (settings.position) {
-        playerPosition.value = settings.position
-      }
-      if (settings.size) {
-        playerSize.value = settings.size
-      }
-    }
-  } catch (error) {
-    console.warn('Error loading player settings:', error)
-  }
+  })
 }
 
 // YouTube Player Functions
@@ -686,15 +667,13 @@ watch(() => store.musicPlaying, (playing) => {
   isPlaying.value = playing
 })
 
-// Watch for window resize to update panel sizing (existing functionality)
+// Watch for window resize to update panel sizing
 let resizeTimeout
-function handlePanelResize() {
+function handleWindowResizeEvent() {
   clearTimeout(resizeTimeout)
   resizeTimeout = setTimeout(() => {
     updatePanelSize()
   }, 100)
-}
-
 onMounted(() => {
   // Only load YouTube API if we have a YouTube source
   if (store.selectedMusicSource?.type === 'youtube') {
@@ -703,15 +682,18 @@ onMounted(() => {
   
   // Add resize listener for responsive sizing
   if (typeof window !== 'undefined') {
-    window.addEventListener('resize', handleWindowResize)
+    window.addEventListener('resize', handleWindowResizeEvent)
     // Initial panel size update
     updatePanelSize()
+    // Set initial position based on stored values or defaults
+    if (musicPlayerContainer.value) {
+      musicPlayerContainer.value.style.left = playerPosition.value.x + 'px'
+      musicPlayerContainer.value.style.bottom = (window.innerHeight - playerPosition.value.y - 200) + 'px'
+    }
   }
   
-  // Load saved settings and apply initial position/size
+  // Load saved position and size from localStorage if available
   loadPlayerSettings()
-  updatePlayerPosition()
-  updatePlayerSize()
 })
 
 onBeforeUnmount(() => {
@@ -724,23 +706,44 @@ onBeforeUnmount(() => {
   }
   ytPlayer = null
   
-  // Remove resize listener
+  // Remove all event listeners
   if (typeof window !== 'undefined') {
-    window.removeEventListener('resize', handleWindowResize)
+    window.removeEventListener('resize', handleWindowResizeEvent)
+    document.removeEventListener('mousemove', handleDrag)
+    document.removeEventListener('mouseup', endDrag)
   }
   
-  // Clean up drag/resize event listeners
-  document.removeEventListener('mousemove', handleDrag)
-  document.removeEventListener('mouseup', endDrag)
-  
-  // Save settings
+  // Save player settings
   savePlayerSettings()
 })
 
-// Window resize handler
+// Save and load player settings
+function savePlayerSettings() {
+  const settings = {
+    position: playerPosition.value,
+    size: playerSize.value
+  }
+  localStorage.setItem('musicPlayerSettings', JSON.stringify(settings))
+}
+
+function loadPlayerSettings() {
+  try {
+    const saved = localStorage.getItem('musicPlayerSettings')
+    if (saved) {
+      const settings = JSON.parse(saved)
+      if (settings.position) {
+        playerPosition.value = settings.position
+      }
+      if (settings.size) {
+        playerSize.value = settings.size
+      }
+    }
+  } catch (error) {
+    console.warn('Error loading player settings:', error)
+  }
+}
+
 function handleWindowResize() {
-  if (typeof window === 'undefined') return
-  
   // Ensure player stays within bounds when window is resized
   const maxX = Math.max(0, window.innerWidth - playerSize.value.width)
   const maxY = Math.max(0, window.innerHeight - 200)
@@ -748,8 +751,10 @@ function handleWindowResize() {
   playerPosition.value.x = Math.min(playerPosition.value.x, maxX)
   playerPosition.value.y = Math.min(playerPosition.value.y, maxY)
   
-  updatePlayerPosition()
-  updatePanelSize() // Keep existing responsive behavior
+  if (musicPlayerContainer.value) {
+    musicPlayerContainer.value.style.left = playerPosition.value.x + 'px'
+    musicPlayerContainer.value.style.bottom = (window.innerHeight - playerPosition.value.y - 200) + 'px'
+  }
 }
 </script>
 
@@ -839,7 +844,7 @@ function handleWindowResize() {
   }
 
   .album-sleeve.youtube-player {
-    margin-left: 15px; /* Proportional adjustment for compact desktop */
+    margin-left: 10px; /* Reduced to prevent overflow on compact desktop */
   }
 
   .vinyl-wrapper {
@@ -849,11 +854,17 @@ function handleWindowResize() {
   }
 
   .vinyl-wrapper.youtube-vinyl {
-    margin-left: -55px; /* Proportional adjustment for compact desktop */
+    margin-left: -50px; /* Reduced to prevent overflow while maintaining coverage */
   }
 
   .deezer-vinyl-wrapper {
-    width: 120px;
+    width: 120px; /* Match album sleeve size for compact desktop */
+    height: 120px;
+    margin-left: -40px;
+  }
+  
+  .deezer-vinyl-wrapper.deezer-vinyl-enhanced {
+    width: 120px; /* Ensure vinyl matches widget size exactly */
     height: 120px;
     margin-left: -40px;
   }
@@ -865,14 +876,14 @@ function handleWindowResize() {
 }
 
 .music-player-panel {
-  width: 240px; /* Default width - can be overridden by user resizing */
+  width: 260px; /* Initial width - can be overridden by user resizing */
   min-width: 200px;
   max-width: 600px;
   background: rgba(255, 255, 255, 0.06); /* very light white, almost transparent */
   backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 12px;
-  overflow: visible; /* Allow resize handles to be visible outside panel */
+  overflow: hidden;
   margin-top: 10px; /* sits under the button */
   pointer-events: auto;
   z-index: 40;
@@ -1085,7 +1096,7 @@ function handleWindowResize() {
 
 /* YouTube player specific positioning */
 .album-sleeve.youtube-player {
-  margin-left: 20px; /* Shift YouTube player to the right */
+  margin-left: 10px; /* Reduced margin to prevent overflow while maintaining positioning */
 }
 
 .sleeve-inner {
@@ -1109,7 +1120,7 @@ function handleWindowResize() {
 
 /* YouTube vinyl positioning - cover about half of the player */
 .vinyl-wrapper.youtube-vinyl {
-  margin-left: -70px; /* Increased overlap to cover about half of the YouTube player */
+  margin-left: -60px; /* Reduced overlap to prevent player cutoff while maintaining half coverage */
 }
 
 .music-player-panel:hover .vinyl-wrapper:not(.is-playing) {
@@ -1345,18 +1356,17 @@ function handleWindowResize() {
 }
 
 .deezer-vinyl-wrapper {
-  width: 140px; /* Match significantly reduced widget size exactly for proper proportions */
-  height: 140px; /* Ensure vinyl doesn't exceed widget height */
+  width: 140px; /* Base size, will be overridden by responsive classes */
+  height: 140px; /* Base size, will be overridden by responsive classes */
   position: relative;
   z-index: 1;
   margin-left: -50px; /* Proportionally reduced overlap consistent with YouTube layout */
   pointer-events: none; /* Avoid blocking widget interactions */
 }
 
-/* Enhanced Deezer vinyl sizing to match player height */
+/* Enhanced Deezer vinyl sizing to match player height exactly */
 .deezer-vinyl-wrapper.deezer-vinyl-enhanced {
-  width: 140px; /* Match widget dimensions exactly */
-  height: 140px; /* Match widget height exactly */
+  /* Size will match the Deezer widget exactly through responsive classes */
   margin-left: -50px; /* Optimal overlap for album cover effect */
 }
 
@@ -1415,7 +1425,7 @@ function handleWindowResize() {
   }
   
   .music-player-panel {
-    width: 180px; /* Proportionally reduced for mobile */
+    width: 200px; /* Increased to accommodate better layouts on mobile */
   }
   
   .album-sleeve {
@@ -1424,7 +1434,7 @@ function handleWindowResize() {
   }
   
   .album-sleeve.youtube-player {
-    margin-left: 12px; /* Proportional adjustment for mobile */
+    margin-left: 8px; /* Reduced to prevent overflow on mobile */
   }
   
   .vinyl-wrapper {
@@ -1434,7 +1444,7 @@ function handleWindowResize() {
   }
 
   .vinyl-wrapper.youtube-vinyl {
-    margin-left: -45px; /* Proportional adjustment for mobile */
+    margin-left: -40px; /* Reduced to prevent overflow while maintaining coverage */
   }
   
   /* Adjust Deezer layout for mobile */
@@ -1444,7 +1454,13 @@ function handleWindowResize() {
   }
   
   .deezer-vinyl-wrapper {
-    width: 110px;
+    width: 110px; /* Match album sleeve and widget size for mobile */
+    height: 110px;
+    margin-left: 0;
+  }
+  
+  .deezer-vinyl-wrapper.deezer-vinyl-enhanced {
+    width: 110px; /* Ensure vinyl matches widget size exactly */
     height: 110px;
     margin-left: 0;
   }
@@ -1467,7 +1483,7 @@ function handleWindowResize() {
   }
   
   .album-sleeve.youtube-player {
-    margin-left: 15px; /* Proportional adjustment for narrow screens */
+    margin-left: 8px; /* Reduced to prevent overflow on narrow screens */
   }
   
   .vinyl-wrapper {
@@ -1477,7 +1493,7 @@ function handleWindowResize() {
   }
 
   .vinyl-wrapper.youtube-vinyl {
-    margin-left: -55px; /* Proportional adjustment for narrow screens */
+    margin-left: -50px; /* Reduced to prevent overflow while maintaining coverage */
   }
   
   .deezer-vinyl-wrapper {
@@ -1510,7 +1526,7 @@ function handleWindowResize() {
   }
   
   .album-sleeve.youtube-player {
-    margin-left: 25px; /* Proportional adjustment for wide screens */
+    margin-left: 15px; /* Reduced from 25px to prevent overflow on wide screens */
   }
   
   .vinyl-wrapper {
@@ -1520,7 +1536,7 @@ function handleWindowResize() {
   }
 
   .vinyl-wrapper.youtube-vinyl {
-    margin-left: -80px; /* Proportional adjustment for wide screens */
+    margin-left: -70px; /* Reduced from -80px to prevent overflow while maintaining coverage */
   }
   
   .deezer-vinyl-wrapper {
@@ -1548,7 +1564,7 @@ function handleWindowResize() {
   }
   
   .music-player-panel {
-    width: 160px; /* Proportionally reduced for small screens */
+    width: 180px; /* Increased to accommodate better layouts on small screens */
   }
   
   .album-sleeve {
@@ -1557,7 +1573,7 @@ function handleWindowResize() {
   }
   
   .album-sleeve.youtube-player {
-    margin-left: 10px; /* Proportional adjustment for small screens */
+    margin-left: 6px; /* Minimal shift to prevent overflow on small screens */
   }
   
   .vinyl-wrapper {
@@ -1567,7 +1583,7 @@ function handleWindowResize() {
   }
 
   .vinyl-wrapper.youtube-vinyl {
-    margin-left: -40px; /* Proportional adjustment for small screens */
+    margin-left: -35px; /* Reduced to prevent overflow while maintaining coverage */
   }
   
   .player-header {
@@ -1580,7 +1596,12 @@ function handleWindowResize() {
   
   /* Mobile Deezer layout adjustments */
   .deezer-vinyl-wrapper {
-    width: 100px;
+    width: 100px; /* Match album sleeve and widget size for small screens */
+    height: 100px;
+  }
+  
+  .deezer-vinyl-wrapper.deezer-vinyl-enhanced {
+    width: 100px; /* Ensure vinyl matches widget size exactly */
     height: 100px;
   }
   

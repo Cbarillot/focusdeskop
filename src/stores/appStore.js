@@ -335,6 +335,11 @@ const themes = ref({
   const musicUrl = ref('') // Support for Spotify, Deezer, YouTube, SoundCloud URLs
   const musicPlatform = ref('') // spotify, deezer, youtube, soundcloud
   const musicError = ref('')
+  
+  // New state for the refactored music player workflow
+  const musicSelected = ref(false) // Track if user has selected and clicked play on music
+  const selectedMusicSource = ref(null) // Store the selected music source details
+  const localAudioFile = ref(null) // Store local audio file details
   const soundscapes = ref({
     rain: { enabled: false, volume: 0.5 },
     forest: { enabled: false, volume: 0.5 },
@@ -598,6 +603,14 @@ const themes = ref({
     musicUrl.value = url
     musicError.value = ''
     musicPlatform.value = detectMusicPlatform(url)
+    
+    // Auto-convert Deezer URLs to widget format
+    if (musicPlatform.value === 'deezer') {
+      const widgetUrl = convertDeezerToWidget(url);
+      if (widgetUrl !== url) {
+        console.log('Auto-converted Deezer URL to widget format');
+      }
+    }
   }
 
   function detectMusicPlatform(url) {
@@ -608,27 +621,62 @@ const themes = ref({
     return ''
   }
 
+  // Enhanced Deezer URL conversion function
+  function convertDeezerToWidget(url) {
+    try {
+      // Handle various Deezer URL formats and convert to widget URLs
+      if (url.includes('deezer.com')) {
+        // Extract playlist/album/track ID from various formats
+        let playlistMatch = url.match(/playlist\/(\d+)/);
+        let albumMatch = url.match(/album\/(\d+)/);
+        let trackMatch = url.match(/track\/(\d+)/);
+        
+        if (playlistMatch) {
+          return `https://widget.deezer.com/widget/light/playlist/${playlistMatch[1]}?tracklist=false`;
+        } else if (albumMatch) {
+          return `https://widget.deezer.com/widget/light/album/${albumMatch[1]}?tracklist=false`;
+        } else if (trackMatch) {
+          return `https://widget.deezer.com/widget/light/track/${trackMatch[1]}?tracklist=false`;
+        }
+        
+        // Handle share links (link.deezer.com)
+        if (url.includes('link.deezer.com')) {
+          console.warn('Deezer share links need manual conversion. Please provide the direct Deezer URL.');
+          return url; // Return original URL, let user handle manually
+        }
+      }
+      return url;
+    } catch (error) {
+      console.warn('Error converting Deezer URL:', error);
+      return url;
+    }
+  }
+
   // Predefined playlists - Both Deezer and YouTube options
   const deezerPlaylists = ref([
     {
       name: 'Warm Melancholia',
       url: 'https://link.deezer.com/s/30I4s94Syhp5iuS3T0NW9',
+      widgetUrl: 'https://widget.deezer.com/widget/light/playlist/11649050864?tracklist=false',
       id: 'warm-melancholia'
     },
     {
       name: 'Classical Music', 
       url: 'https://link.deezer.com/s/30I4sTHKDNbVCXriMGGJY',
+      widgetUrl: 'https://widget.deezer.com/widget/light/playlist/8940192602?tracklist=false',
       id: 'classical-music'
     },
     {
-      name: 'Dance Music',
+      name: 'Dance, bitch',
       url: 'https://link.deezer.com/s/30I4tfQt1D3eTJ7FZKjpn', 
+      widgetUrl: 'https://widget.deezer.com/widget/light/playlist/13367781383?tracklist=false',
       id: 'dance-music'
     },
     {
-      name: 'Coup de Coeur',
+      name: 'Favorites',
       url: 'https://link.deezer.com/s/30HLLIhq7W7gERuNFubDG',
-      id: 'coup-de-coeur'
+      widgetUrl: 'https://widget.deezer.com/widget/light/playlist/1087888711?tracklist=false',
+      id: 'favorites'
     }
   ])
 
@@ -703,6 +751,53 @@ const themes = ref({
 
   function toggleMusicPlayback() {
     musicPlaying.value = !musicPlaying.value
+  }
+
+  // New functions for the refactored music player workflow
+  function playSelectedMusic(source) {
+    // Set the selected music source and mark as selected
+    selectedMusicSource.value = source
+    musicSelected.value = true
+    musicPlaying.value = true
+    
+    // Set appropriate URL and platform based on source type
+    if (source.type === 'youtube') {
+      setMusicUrl(source.url)
+      currentTrack.value = source.title || source.name
+    } else if (source.type === 'spotify') {
+      setMusicUrl(source.url) 
+      currentTrack.value = source.title || source.name
+    } else if (source.type === 'deezer') {
+      // Auto-convert Deezer URLs to widget format if needed
+      let urlToUse = source.widgetUrl || source.url
+      if (!source.widgetUrl && source.url) {
+        urlToUse = convertDeezerToWidget(source.url)
+        source.widgetUrl = urlToUse // Store the converted widget URL
+      }
+      
+      setMusicUrl(urlToUse)
+      currentTrack.value = source.title || source.name
+      // Store both URLs for different use cases
+      selectedMusicSource.value.widgetUrl = urlToUse
+      selectedMusicSource.value.url = source.url
+    } else if (source.type === 'local') {
+      localAudioFile.value = source
+      currentTrack.value = source.name
+      musicUrl.value = source.url // for local files, this will be a blob URL
+      musicPlatform.value = 'local'
+    }
+  }
+
+  function resetMusicSelection() {
+    // Reset all music selection state
+    musicSelected.value = false
+    selectedMusicSource.value = null
+    localAudioFile.value = null
+    musicPlaying.value = false
+    currentTrack.value = null
+    musicUrl.value = ''
+    musicPlatform.value = ''
+    musicError.value = ''
   }
 
   // Fullscreen management
@@ -806,6 +901,9 @@ const themes = ref({
     musicUrl,
     musicPlatform,
     musicError,
+    musicSelected,
+    selectedMusicSource,
+    localAudioFile,
     soundscapes,
     // Playlist data
     deezerPlaylists,
@@ -843,10 +941,13 @@ const themes = ref({
     applyThemeColors,
     setMusicUrl,
     detectMusicPlatform,
+    convertDeezerToWidget,
     playDeezerPlaylist,
     playYouTubePlaylist,
     stopMusic,
     toggleMusicPlayback,
+    playSelectedMusic,
+    resetMusicSelection,
     toggleFullscreen,
     updatePomodoroTime,
     updateShortBreakTime,
