@@ -270,12 +270,25 @@ function openMusicSettings() {
 
 // Panel drag functionality
 function handlePanelMouseDown(event) {
-  // Only start drag if clicking on the background of the panel (not on controls)
-  if (event.target === musicPlayerPanel.value ||
-      event.target.classList.contains('player-content') ||
-      event.target.classList.contains('centered-layout')) {
-    startDrag(event)
+  // Don't start drag if clicking on interactive elements
+  const interactiveElements = [
+    'INPUT', 'BUTTON', 'IFRAME', 'SVG', 'PATH', 'CIRCLE', 'RECT', 'POLYGON'
+  ]
+
+  // Don't start drag if clicking on resize handles
+  if (event.target.classList.contains('resize-handle') ||
+      event.target.closest('.resize-handle')) {
+    return
   }
+
+  // Don't start drag if clicking on interactive elements
+  if (interactiveElements.includes(event.target.tagName) ||
+      event.target.closest('button, input, iframe, svg')) {
+    return
+  }
+
+  // Start drag for background areas
+  startDrag(event)
 }
 
 // Drag functionality
@@ -890,6 +903,15 @@ function handleWindowResize() {
   pointer-events: auto;
   z-index: 40;
   position: relative; /* For resize handles positioning */
+  cursor: grab; /* Show grab cursor when hovering over draggable areas */
+}
+
+.music-player-panel:active {
+  cursor: grabbing;
+}
+
+.is-dragging .music-player-panel {
+  cursor: grabbing;
 }
 
 .music-player-panel.resizable {
@@ -1018,6 +1040,11 @@ function handleWindowResize() {
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  cursor: grab; /* Allow dragging when clicking on the content background */
+}
+
+.player-content.centered-layout:active {
+  cursor: grabbing;
 }
 
 .centered-player {
