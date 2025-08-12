@@ -254,7 +254,7 @@ let ytPlayer = null
 const isDragging = ref(false)
 const isResizing = ref(false)
 const playerPosition = ref({ x: 20, y: 20 })
-const playerSize = ref({ width: 260, height: 'auto' })
+const playerSize = ref({ width: 280, height: 'auto' })
 const musicPlayerContainer = ref(null)
 const musicPlayerPanel = ref(null)
 
