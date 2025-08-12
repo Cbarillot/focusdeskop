@@ -5,7 +5,7 @@
     :class="{ 'is-dragging': isDragging, 'is-resizing': isResizing }"
     :style="{ 
       left: playerPosition.x + 'px', 
-      bottom: (window.innerHeight - playerPosition.y - 200) + 'px' 
+      bottom: typeof window !== 'undefined' ? (window.innerHeight - playerPosition.y - 200) + 'px' : '20px'
     }"
   >
     <!-- Music Button (kept, no toggle) - serves as drag handle -->
@@ -284,7 +284,7 @@ function startDrag(event) {
 }
 
 function handleDrag(event) {
-  if (!isDragging.value) return
+  if (!isDragging.value || typeof window === 'undefined') return
   
   const deltaX = event.clientX - dragStart.x
   const deltaY = event.clientY - dragStart.y
@@ -361,7 +361,7 @@ function endResize(resizeHandler) {
 
 // Update functions
 function updatePlayerPosition() {
-  if (musicPlayerContainer.value) {
+  if (musicPlayerContainer.value && typeof window !== 'undefined') {
     musicPlayerContainer.value.style.left = playerPosition.value.x + 'px'
     musicPlayerContainer.value.style.bottom = (window.innerHeight - playerPosition.value.y - 200) + 'px'
   }
@@ -739,6 +739,8 @@ onBeforeUnmount(() => {
 
 // Window resize handler
 function handleWindowResize() {
+  if (typeof window === 'undefined') return
+  
   // Ensure player stays within bounds when window is resized
   const maxX = Math.max(0, window.innerWidth - playerSize.value.width)
   const maxY = Math.max(0, window.innerHeight - 200)
@@ -797,7 +799,6 @@ function handleWindowResize() {
 .music-button.drag-handle:active,
 .is-dragging .music-button.drag-handle {
   cursor: grabbing;
-}
 }
 
 .music-button:hover {
