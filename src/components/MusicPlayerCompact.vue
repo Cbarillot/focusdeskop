@@ -38,7 +38,7 @@
         <!-- YouTube Player -->
         <div v-if="store.selectedMusicSource?.type === 'youtube'" class="vinyl-player">
           <div class="player-container">
-            <div class="album-sleeve">
+            <div class="album-sleeve youtube-player">
               <div class="sleeve-inner">
                 <div v-if="ytReady" id="youtube-player"></div>
                 <iframe 
@@ -54,13 +54,28 @@
               </div>
             </div>
             
-            <div :class="['vinyl-wrapper', { 'is-playing': isPlaying }]">
+            <div :class="['vinyl-wrapper', 'youtube-vinyl', { 'is-playing': isPlaying }]">
               <img 
                 :class="['vinyl-record', { 'is-spinning': isPlaying }]" 
                 src="/assets/icons/vinyle.png" 
                 alt="Disque vinyle"
               />
             </div>
+          </div>
+          
+          <!-- YouTube Volume Control -->
+          <div class="youtube-volume-control">
+            <div class="volume-label">Volume</div>
+            <input 
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              v-model="youtubeVolume"
+              @input="updateYouTubeVolume"
+              class="youtube-volume-slider"
+            />
+            <div class="volume-value">{{ youtubeVolume }}%</div>
           </div>
         </div>
 
@@ -174,7 +189,7 @@
             </div>
             
             <!-- Vinyl Element to the Right -->
-            <div class="deezer-vinyl-wrapper">
+            <div class="deezer-vinyl-wrapper deezer-vinyl-enhanced">
               <img 
                 :class="['vinyl-record', 'deezer-vinyl', { 'is-spinning': isPlaying }]" 
                 src="/assets/icons/vinyle.png" 
@@ -202,6 +217,7 @@ const store = useAppStore()
 const isPlaying = ref(false)
 const ytReady = ref(false)
 const localVolume = ref(0.7)
+const youtubeVolume = ref(50)
 const audioPlayer = ref(null)
 let ytPlayer = null
 
@@ -277,6 +293,17 @@ function extractYouTubeId(url) {
   if (!url) return ''
   const match = url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/)
   return match ? match[1] : ''
+}
+
+// YouTube Volume Control
+function updateYouTubeVolume() {
+  if (ytPlayer && ytPlayer.setVolume) {
+    try {
+      ytPlayer.setVolume(youtubeVolume.value)
+    } catch (e) {
+      console.warn('Error setting YouTube volume:', e)
+    }
+  }
 }
 
 // Local Audio Functions
@@ -566,10 +593,18 @@ onBeforeUnmount(() => {
     height: 120px;
   }
 
+  .album-sleeve.youtube-player {
+    margin-left: 15px; /* Proportional adjustment for compact desktop */
+  }
+
   .vinyl-wrapper {
     width: 120px;
     height: 120px;
     margin-left: -40px;
+  }
+
+  .vinyl-wrapper.youtube-vinyl {
+    margin-left: -55px; /* Proportional adjustment for compact desktop */
   }
 
   .deezer-vinyl-wrapper {
@@ -711,6 +746,11 @@ onBeforeUnmount(() => {
   z-index: 2; /* above vinyl */
 }
 
+/* YouTube player specific positioning */
+.album-sleeve.youtube-player {
+  margin-left: 20px; /* Shift YouTube player to the right */
+}
+
 .sleeve-inner {
   width: calc(100% - 12px); /* leave a white frame */
   height: calc(100% - 12px);
@@ -728,6 +768,11 @@ onBeforeUnmount(() => {
   position: relative;
   z-index: 1; /* behind sleeve */
   pointer-events: none; /* avoid blocking interactions */
+}
+
+/* YouTube vinyl positioning - cover about half of the player */
+.vinyl-wrapper.youtube-vinyl {
+  margin-left: -70px; /* Increased overlap to cover about half of the YouTube player */
 }
 
 .music-player-panel:hover .vinyl-wrapper:not(.is-playing) {
@@ -859,6 +904,59 @@ onBeforeUnmount(() => {
   border: none;
 }
 
+/* YouTube Volume Control */
+.youtube-volume-control {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+}
+
+.volume-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 10px;
+  font-weight: 500;
+  min-width: 40px;
+}
+
+.youtube-volume-slider {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+}
+
+.youtube-volume-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: rgba(239, 68, 68, 1); /* Red color for YouTube */
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.youtube-volume-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: rgba(239, 68, 68, 1); /* Red color for YouTube */
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.volume-value {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 10px;
+  min-width: 30px;
+  text-align: right;
+}
+
 /* Embedded player styles */
 .embedded-player {
   border-radius: 8px;
@@ -916,6 +1014,13 @@ onBeforeUnmount(() => {
   z-index: 1;
   margin-left: -50px; /* Proportionally reduced overlap consistent with YouTube layout */
   pointer-events: none; /* Avoid blocking widget interactions */
+}
+
+/* Enhanced Deezer vinyl sizing to match player height */
+.deezer-vinyl-wrapper.deezer-vinyl-enhanced {
+  width: 140px; /* Match widget dimensions exactly */
+  height: 140px; /* Match widget height exactly */
+  margin-left: -50px; /* Optimal overlap for album cover effect */
 }
 
 .vinyl-record.deezer-vinyl {
@@ -981,10 +1086,18 @@ onBeforeUnmount(() => {
     height: 110px;
   }
   
+  .album-sleeve.youtube-player {
+    margin-left: 12px; /* Proportional adjustment for mobile */
+  }
+  
   .vinyl-wrapper {
     width: 110px;
     height: 110px;
     margin-left: -35px;
+  }
+
+  .vinyl-wrapper.youtube-vinyl {
+    margin-left: -45px; /* Proportional adjustment for mobile */
   }
   
   /* Adjust Deezer layout for mobile */
@@ -1016,10 +1129,18 @@ onBeforeUnmount(() => {
     height: 120px;
   }
   
+  .album-sleeve.youtube-player {
+    margin-left: 15px; /* Proportional adjustment for narrow screens */
+  }
+  
   .vinyl-wrapper {
     width: 120px;
     height: 120px;
     margin-left: -40px;
+  }
+
+  .vinyl-wrapper.youtube-vinyl {
+    margin-left: -55px; /* Proportional adjustment for narrow screens */
   }
   
   .deezer-vinyl-wrapper {
@@ -1027,7 +1148,13 @@ onBeforeUnmount(() => {
     height: 120px;
     margin-left: -40px;
   }
-  
+
+  .deezer-vinyl-wrapper.deezer-vinyl-enhanced {
+    width: 120px;
+    height: 120px;
+    margin-left: -40px;
+  }
+
   .default-state {
     width: 160px; /* Smaller default state for narrow screens */
     height: 140px;
@@ -1045,10 +1172,18 @@ onBeforeUnmount(() => {
     height: 160px;
   }
   
+  .album-sleeve.youtube-player {
+    margin-left: 25px; /* Proportional adjustment for wide screens */
+  }
+  
   .vinyl-wrapper {
     width: 160px;
     height: 160px;
     margin-left: -60px;
+  }
+
+  .vinyl-wrapper.youtube-vinyl {
+    margin-left: -80px; /* Proportional adjustment for wide screens */
   }
   
   .deezer-vinyl-wrapper {
@@ -1056,7 +1191,13 @@ onBeforeUnmount(() => {
     height: 160px;
     margin-left: -60px;
   }
-  
+
+  .deezer-vinyl-wrapper.deezer-vinyl-enhanced {
+    width: 160px;
+    height: 160px;
+    margin-left: -60px;
+  }
+
   .default-state {
     width: 220px; /* Larger default state for wide screens */
     height: 180px;
@@ -1078,10 +1219,18 @@ onBeforeUnmount(() => {
     height: 100px;
   }
   
+  .album-sleeve.youtube-player {
+    margin-left: 10px; /* Proportional adjustment for small screens */
+  }
+  
   .vinyl-wrapper {
     width: 100px;
     height: 100px;
     margin-left: -30px;
+  }
+
+  .vinyl-wrapper.youtube-vinyl {
+    margin-left: -40px; /* Proportional adjustment for small screens */
   }
   
   .player-header {
