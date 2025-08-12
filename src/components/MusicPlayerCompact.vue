@@ -92,21 +92,6 @@
           
         </div>
 
-        <!-- YouTube Volume Control (moved outside and below player) -->
-        <div v-if="store.selectedMusicSource?.type === 'youtube'" class="youtube-volume-control volume-section">
-          <div class="volume-label">Volume</div>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            v-model="youtubeVolume"
-            @input="updateYouTubeVolume"
-            class="youtube-volume-slider"
-          />
-          <div class="volume-value">{{ youtubeVolume }}%</div>
-        </div>
-
         <!-- Local Audio Player -->
         <div v-else-if="store.selectedMusicSource?.type === 'local'" class="vinyl-player">
           <div class="player-container">
