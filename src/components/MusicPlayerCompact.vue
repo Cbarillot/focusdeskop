@@ -25,13 +25,14 @@
     </button>
 
     <!-- Compact Music Player (always visible) -->
-    <div 
+    <div
       ref="musicPlayerPanel"
       class="music-player-panel resizable"
-      :style="{ 
-        width: playerSize.width + 'px', 
-        height: typeof playerSize.height === 'number' ? playerSize.height + 'px' : 'auto' 
+      :style="{
+        width: playerSize.width + 'px',
+        height: typeof playerSize.height === 'number' ? playerSize.height + 'px' : 'auto'
       }"
+      @mousedown="handlePanelMouseDown"
     >
       <!-- Resize handles -->
       <div class="resize-handle resize-handle-nw" @mousedown="startResize($event, 'top-left')"></div>
@@ -60,7 +61,7 @@
       </div>
 
       <!-- Music selected and playing -->
-      <div v-else class="player-content">
+      <div v-else class="player-content centered-layout">
         <!-- YouTube Player -->
         <div v-if="store.selectedMusicSource?.type === 'youtube'" class="vinyl-player">
           <div class="player-container">
@@ -89,20 +90,6 @@
             </div>
           </div>
           
-          <!-- YouTube Volume Control -->
-          <div class="youtube-volume-control">
-            <div class="volume-label">Volume</div>
-            <input 
-              type="range"
-              min="0"
-              max="100"
-              step="1"
-              v-model="youtubeVolume"
-              @input="updateYouTubeVolume"
-              class="youtube-volume-slider"
-            />
-            <div class="volume-value">{{ youtubeVolume }}%</div>
-          </div>
         </div>
 
         <!-- Local Audio Player -->
@@ -133,53 +120,54 @@
             </div>
           </div>
           
-          <!-- Custom Audio Controls -->
-          <div class="audio-controls">
-            <audio 
-              ref="audioPlayer"
-              :src="store.localAudioFile?.url"
-              @loadedmetadata="onAudioLoaded"
-              @timeupdate="onTimeUpdate"
-              @ended="onAudioEnded"
-            ></audio>
-            
-            <div class="control-buttons">
-              <button @click="previousTrack" class="control-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 6V18L18 12L6 6Z" fill="currentColor"/>
-                  <rect x="4" y="6" width="2" height="12" fill="currentColor"/>
-                </svg>
-              </button>
-              
-              <button @click="toggleLocalPlayback" class="control-btn play-btn">
-                <svg v-if="!isPlaying" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
-                </svg>
-                <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="6" y="4" width="4" height="16" fill="currentColor"/>
-                  <rect x="14" y="4" width="4" height="16" fill="currentColor"/>
-                </svg>
-              </button>
-              
-              <button @click="nextTrack" class="control-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 18L18 12L6 6V18Z" fill="currentColor"/>
-                  <rect x="18" y="6" width="2" height="12" fill="currentColor"/>
-                </svg>
-              </button>
-            </div>
-            
-            <div class="volume-control">
-              <input 
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                v-model="localVolume"
-                @input="updateLocalVolume"
-                class="volume-slider"
-              />
-            </div>
+        </div>
+
+        <!-- Custom Audio Controls (moved outside and below player) -->
+        <div v-if="store.selectedMusicSource?.type === 'local'" class="audio-controls volume-section">
+          <audio
+            ref="audioPlayer"
+            :src="store.localAudioFile?.url"
+            @loadedmetadata="onAudioLoaded"
+            @timeupdate="onTimeUpdate"
+            @ended="onAudioEnded"
+          ></audio>
+
+          <div class="control-buttons">
+            <button @click="previousTrack" class="control-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 6V18L18 12L6 6Z" fill="currentColor"/>
+                <rect x="4" y="6" width="2" height="12" fill="currentColor"/>
+              </svg>
+            </button>
+
+            <button @click="toggleLocalPlayback" class="control-btn play-btn">
+              <svg v-if="!isPlaying" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
+              </svg>
+              <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="6" y="4" width="4" height="16" fill="currentColor"/>
+                <rect x="14" y="4" width="4" height="16" fill="currentColor"/>
+              </svg>
+            </button>
+
+            <button @click="nextTrack" class="control-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 18L18 12L6 6V18Z" fill="currentColor"/>
+                <rect x="18" y="6" width="2" height="12" fill="currentColor"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="volume-control">
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              v-model="localVolume"
+              @input="updateLocalVolume"
+              class="volume-slider"
+            />
           </div>
         </div>
 
@@ -225,8 +213,8 @@
           </div>
         </div>
 
-        <!-- Track Info -->
-        <div class="current-track">
+        <!-- Track Info (moved to bottom) -->
+        <div class="current-track track-info-bottom">
           <div class="track-name">{{ store.currentTrack }}</div>
           <div class="track-status">{{ getTrackStatus() }}</div>
         </div>
@@ -251,7 +239,7 @@ let ytPlayer = null
 const isDragging = ref(false)
 const isResizing = ref(false)
 const playerPosition = ref({ x: 20, y: 20 })
-const playerSize = ref({ width: 260, height: 'auto' })
+const playerSize = ref({ width: 280, height: 'auto' })
 const musicPlayerContainer = ref(null)
 const musicPlayerPanel = ref(null)
 
@@ -263,6 +251,29 @@ let resizeStart = { x: 0, y: 0, width: 0, height: 0 }
 function openMusicSettings() {
   store.setActiveTab('music')
   if (!store.sidebarOpen) store.toggleSidebar()
+}
+
+// Panel drag functionality
+function handlePanelMouseDown(event) {
+  // Don't start drag if clicking on interactive elements
+  const interactiveElements = [
+    'INPUT', 'BUTTON', 'IFRAME', 'SVG', 'PATH', 'CIRCLE', 'RECT', 'POLYGON'
+  ]
+
+  // Don't start drag if clicking on resize handles
+  if (event.target.classList.contains('resize-handle') ||
+      event.target.closest('.resize-handle')) {
+    return
+  }
+
+  // Don't start drag if clicking on interactive elements
+  if (interactiveElements.includes(event.target.tagName) ||
+      event.target.closest('button, input, iframe, svg')) {
+    return
+  }
+
+  // Start drag for background areas
+  startDrag(event)
 }
 
 // Drag functionality
@@ -865,7 +876,7 @@ function handleWindowResize() {
 }
 
 .music-player-panel {
-  width: 240px; /* Default width - can be overridden by user resizing */
+  width: 280px; /* Default width - can be overridden by user resizing */
   min-width: 200px;
   max-width: 600px;
   background: rgba(255, 255, 255, 0.06); /* very light white, almost transparent */
@@ -877,6 +888,15 @@ function handleWindowResize() {
   pointer-events: auto;
   z-index: 40;
   position: relative; /* For resize handles positioning */
+  cursor: grab; /* Show grab cursor when hovering over draggable areas */
+}
+
+.music-player-panel:active {
+  cursor: grabbing;
+}
+
+.is-dragging .music-player-panel {
+  cursor: grabbing;
 }
 
 .music-player-panel.resizable {
@@ -999,6 +1019,43 @@ function handleWindowResize() {
   padding: 16px;
 }
 
+/* New centered layout */
+.player-content.centered-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  cursor: grab; /* Allow dragging when clicking on the content background */
+}
+
+.player-content.centered-layout:active {
+  cursor: grabbing;
+}
+
+.centered-player {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* Volume section styling */
+.volume-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Track info at bottom */
+.track-info-bottom {
+  margin-top: auto;
+  margin-bottom: 0;
+  width: 100%;
+  text-align: center;
+}
+
 /* Default state styles - optimized 200x200px format */
 .default-state {
   display: flex;
@@ -1062,6 +1119,11 @@ function handleWindowResize() {
 .vinyl-player {
   display: flex;
   justify-content: center;
+}
+
+.vinyl-player.centered-player {
+  width: 100%;
+  margin-bottom: 0;
 }
 
 .player-container {
@@ -1163,10 +1225,14 @@ function handleWindowResize() {
 
 /* Audio controls for local files */
 .audio-controls {
-  margin-top: 12px;
+  margin-top: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .control-buttons {
@@ -1243,11 +1309,15 @@ function handleWindowResize() {
 
 /* YouTube Volume Control */
 .youtube-volume-control {
-  margin-top: 12px;
+  margin-top: 0;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 8px;
+  padding: 8px;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .volume-label {
@@ -1298,9 +1368,14 @@ function handleWindowResize() {
 .embedded-player {
   border-radius: 8px;
   overflow: hidden;
-  margin-bottom: 12px;
+  margin-bottom: 0;
   display: flex;
   justify-content: center; /* Center the iframe */
+}
+
+.embedded-player.centered-player {
+  width: 100%;
+  margin-bottom: 0;
 }
 
 .embedded-player iframe {
@@ -1313,6 +1388,11 @@ function handleWindowResize() {
 .deezer-vinyl-player {
   display: flex;
   justify-content: center;
+}
+
+.deezer-vinyl-player.centered-player {
+  width: 100%;
+  margin-bottom: 0;
 }
 
 .deezer-container {
@@ -1375,8 +1455,17 @@ function handleWindowResize() {
 }
 
 .current-track {
-  margin-bottom: 16px;
+  margin-bottom: 0;
   text-align: center;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.current-track.track-info-bottom {
+  margin-top: 8px;
+  width: 100%;
 }
 
 .track-name {
