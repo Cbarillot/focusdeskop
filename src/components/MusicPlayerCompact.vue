@@ -25,13 +25,14 @@
     </button>
 
     <!-- Compact Music Player (always visible) -->
-    <div 
+    <div
       ref="musicPlayerPanel"
       class="music-player-panel resizable"
-      :style="{ 
-        width: playerSize.width + 'px', 
-        height: typeof playerSize.height === 'number' ? playerSize.height + 'px' : 'auto' 
+      :style="{
+        width: playerSize.width + 'px',
+        height: typeof playerSize.height === 'number' ? playerSize.height + 'px' : 'auto'
       }"
+      @mousedown="handlePanelMouseDown"
     >
       <!-- Resize handles -->
       <div class="resize-handle resize-handle-nw" @mousedown="startResize($event, 'top-left')"></div>
@@ -60,7 +61,7 @@
       </div>
 
       <!-- Music selected and playing -->
-      <div v-else class="player-content">
+      <div v-else class="player-content centered-layout">
         <!-- YouTube Player -->
         <div v-if="store.selectedMusicSource?.type === 'youtube'" class="vinyl-player">
           <div class="player-container">
@@ -89,20 +90,21 @@
             </div>
           </div>
           
-          <!-- YouTube Volume Control -->
-          <div class="youtube-volume-control">
-            <div class="volume-label">Volume</div>
-            <input 
-              type="range"
-              min="0"
-              max="100"
-              step="1"
-              v-model="youtubeVolume"
-              @input="updateYouTubeVolume"
-              class="youtube-volume-slider"
-            />
-            <div class="volume-value">{{ youtubeVolume }}%</div>
-          </div>
+        </div>
+
+        <!-- YouTube Volume Control (moved outside and below player) -->
+        <div v-if="store.selectedMusicSource?.type === 'youtube'" class="youtube-volume-control volume-section">
+          <div class="volume-label">Volume</div>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            v-model="youtubeVolume"
+            @input="updateYouTubeVolume"
+            class="youtube-volume-slider"
+          />
+          <div class="volume-value">{{ youtubeVolume }}%</div>
         </div>
 
         <!-- Local Audio Player -->
@@ -133,53 +135,54 @@
             </div>
           </div>
           
-          <!-- Custom Audio Controls -->
-          <div class="audio-controls">
-            <audio 
-              ref="audioPlayer"
-              :src="store.localAudioFile?.url"
-              @loadedmetadata="onAudioLoaded"
-              @timeupdate="onTimeUpdate"
-              @ended="onAudioEnded"
-            ></audio>
-            
-            <div class="control-buttons">
-              <button @click="previousTrack" class="control-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 6V18L18 12L6 6Z" fill="currentColor"/>
-                  <rect x="4" y="6" width="2" height="12" fill="currentColor"/>
-                </svg>
-              </button>
-              
-              <button @click="toggleLocalPlayback" class="control-btn play-btn">
-                <svg v-if="!isPlaying" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
-                </svg>
-                <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="6" y="4" width="4" height="16" fill="currentColor"/>
-                  <rect x="14" y="4" width="4" height="16" fill="currentColor"/>
-                </svg>
-              </button>
-              
-              <button @click="nextTrack" class="control-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 18L18 12L6 6V18Z" fill="currentColor"/>
-                  <rect x="18" y="6" width="2" height="12" fill="currentColor"/>
-                </svg>
-              </button>
-            </div>
-            
-            <div class="volume-control">
-              <input 
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                v-model="localVolume"
-                @input="updateLocalVolume"
-                class="volume-slider"
-              />
-            </div>
+        </div>
+
+        <!-- Custom Audio Controls (moved outside and below player) -->
+        <div v-if="store.selectedMusicSource?.type === 'local'" class="audio-controls volume-section">
+          <audio
+            ref="audioPlayer"
+            :src="store.localAudioFile?.url"
+            @loadedmetadata="onAudioLoaded"
+            @timeupdate="onTimeUpdate"
+            @ended="onAudioEnded"
+          ></audio>
+
+          <div class="control-buttons">
+            <button @click="previousTrack" class="control-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 6V18L18 12L6 6Z" fill="currentColor"/>
+                <rect x="4" y="6" width="2" height="12" fill="currentColor"/>
+              </svg>
+            </button>
+
+            <button @click="toggleLocalPlayback" class="control-btn play-btn">
+              <svg v-if="!isPlaying" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
+              </svg>
+              <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="6" y="4" width="4" height="16" fill="currentColor"/>
+                <rect x="14" y="4" width="4" height="16" fill="currentColor"/>
+              </svg>
+            </button>
+
+            <button @click="nextTrack" class="control-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 18L18 12L6 6V18Z" fill="currentColor"/>
+                <rect x="18" y="6" width="2" height="12" fill="currentColor"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="volume-control">
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              v-model="localVolume"
+              @input="updateLocalVolume"
+              class="volume-slider"
+            />
           </div>
         </div>
 
@@ -225,8 +228,8 @@
           </div>
         </div>
 
-        <!-- Track Info -->
-        <div class="current-track">
+        <!-- Track Info (moved to bottom) -->
+        <div class="current-track track-info-bottom">
           <div class="track-name">{{ store.currentTrack }}</div>
           <div class="track-status">{{ getTrackStatus() }}</div>
         </div>
