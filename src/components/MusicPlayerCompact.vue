@@ -1012,6 +1012,38 @@ function handleWindowResize() {
   padding: 16px;
 }
 
+/* New centered layout */
+.player-content.centered-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.centered-player {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* Volume section styling */
+.volume-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Track info at bottom */
+.track-info-bottom {
+  margin-top: auto;
+  margin-bottom: 0;
+  width: 100%;
+  text-align: center;
+}
+
 /* Default state styles - optimized 200x200px format */
 .default-state {
   display: flex;
@@ -1075,6 +1107,11 @@ function handleWindowResize() {
 .vinyl-player {
   display: flex;
   justify-content: center;
+}
+
+.vinyl-player.centered-player {
+  width: 100%;
+  margin-bottom: 0;
 }
 
 .player-container {
@@ -1176,10 +1213,14 @@ function handleWindowResize() {
 
 /* Audio controls for local files */
 .audio-controls {
-  margin-top: 12px;
+  margin-top: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .control-buttons {
@@ -1256,11 +1297,15 @@ function handleWindowResize() {
 
 /* YouTube Volume Control */
 .youtube-volume-control {
-  margin-top: 12px;
+  margin-top: 0;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 8px;
+  padding: 8px;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .volume-label {
@@ -1311,9 +1356,14 @@ function handleWindowResize() {
 .embedded-player {
   border-radius: 8px;
   overflow: hidden;
-  margin-bottom: 12px;
+  margin-bottom: 0;
   display: flex;
   justify-content: center; /* Center the iframe */
+}
+
+.embedded-player.centered-player {
+  width: 100%;
+  margin-bottom: 0;
 }
 
 .embedded-player iframe {
@@ -1326,6 +1376,11 @@ function handleWindowResize() {
 .deezer-vinyl-player {
   display: flex;
   justify-content: center;
+}
+
+.deezer-vinyl-player.centered-player {
+  width: 100%;
+  margin-bottom: 0;
 }
 
 .deezer-container {
@@ -1388,8 +1443,17 @@ function handleWindowResize() {
 }
 
 .current-track {
-  margin-bottom: 16px;
+  margin-bottom: 0;
   text-align: center;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.current-track.track-info-bottom {
+  margin-top: 8px;
+  width: 100%;
 }
 
 .track-name {
