@@ -268,6 +268,16 @@ function openMusicSettings() {
   if (!store.sidebarOpen) store.toggleSidebar()
 }
 
+// Panel drag functionality
+function handlePanelMouseDown(event) {
+  // Only start drag if clicking on the background of the panel (not on controls)
+  if (event.target === musicPlayerPanel.value ||
+      event.target.classList.contains('player-content') ||
+      event.target.classList.contains('centered-layout')) {
+    startDrag(event)
+  }
+}
+
 // Drag functionality
 function startDrag(event) {
   if (isResizing.value) return
