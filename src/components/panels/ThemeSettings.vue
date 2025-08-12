@@ -246,29 +246,91 @@
           <span class="chevron" :class="{ open: sectionOpen.images }">▾</span>
         </div>
         
-        <div class="themes-grid" v-show="sectionOpen.images">
-          <div
-            v-for="(theme, key) in getThemesByCategory('images')"
-            v-if="theme"
-            :key="key"
-            class="theme-card"
-            :class="{ active: store.currentTheme === key }"
-            @click="selectTheme(key)"
-          >
-            <div class="theme-preview">
-              <img
-                :src="getPreviewImage(theme)"
-                :alt="theme.name"
-                class="theme-image"
-                @error="handleImageError"
-              />
-              <div class="theme-type-badge" :class="theme.type">
-                {{ getTypeBadge(theme.type) }}
+        <div v-show="sectionOpen.images">
+          <!-- Ghibli Subcategory -->
+          <h5 class="subcategory-title">🎭 Studio Ghibli</h5>
+          <div class="themes-grid">
+            <div
+              v-for="(theme, key) in getThemesByCategory('ghibli')"
+              v-if="theme"
+              :key="key"
+              class="theme-card"
+              :class="{ active: store.currentTheme === key }"
+              @click="selectTheme(key)"
+            >
+              <div class="theme-preview">
+                <img
+                  :src="getPreviewImage(theme)"
+                  :alt="theme.name"
+                  class="theme-image"
+                  @error="handleImageError"
+                />
+                <div class="theme-type-badge" :class="theme.type">
+                  🎭
+                </div>
+              </div>
+              <div class="theme-info">
+                <h4 class="theme-name">{{ theme.name }}</h4>
+                <p class="theme-type">Ghibli Art</p>
               </div>
             </div>
-            <div class="theme-info">
-              <h4 class="theme-name">{{ theme.name }}</h4>
-              <p class="theme-type">{{ getTypeLabel(theme.type) }}</p>
+          </div>
+
+          <!-- Classical Art Subcategory -->
+          <h5 class="subcategory-title">🎨 Classical Art</h5>
+          <div class="themes-grid">
+            <div
+              v-for="(theme, key) in getThemesByCategory('classical-art')"
+              v-if="theme"
+              :key="key"
+              class="theme-card"
+              :class="{ active: store.currentTheme === key }"
+              @click="selectTheme(key)"
+            >
+              <div class="theme-preview">
+                <img
+                  :src="getPreviewImage(theme)"
+                  :alt="theme.name"
+                  class="theme-image"
+                  @error="handleImageError"
+                />
+                <div class="theme-type-badge" :class="theme.type">
+                  🎨
+                </div>
+              </div>
+              <div class="theme-info">
+                <h4 class="theme-name">{{ theme.name }}</h4>
+                <p class="theme-type">Classical Art</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- General Images Subcategory -->
+          <h5 class="subcategory-title">🌅 Other Images</h5>
+          <div class="themes-grid">
+            <div
+              v-for="(theme, key) in getThemesByCategory('images')"
+              v-if="theme"
+              :key="key"
+              class="theme-card"
+              :class="{ active: store.currentTheme === key }"
+              @click="selectTheme(key)"
+            >
+              <div class="theme-preview">
+                <img
+                  :src="getPreviewImage(theme)"
+                  :alt="theme.name"
+                  class="theme-image"
+                  @error="handleImageError"
+                />
+                <div class="theme-type-badge" :class="theme.type">
+                  {{ getTypeBadge(theme.type) }}
+                </div>
+              </div>
+              <div class="theme-info">
+                <h4 class="theme-name">{{ theme.name }}</h4>
+                <p class="theme-type">{{ getTypeLabel(theme.type) }}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -536,12 +598,15 @@ const getContrastColor = (hexColor) => {
 };
 
 // Charger la couleur sauvegardée au montage
-onMounted(() => {
+onMounted(async () => {
   const savedColor = localStorage.getItem('themeColor')
   if (savedColor) {
     customColor.value = savedColor
     updateThemeColor()
   }
+  
+  // Load all media assets from the themes directories
+  await store.loadMediaAssets()
 })
 
 const store = useAppStore()
@@ -646,7 +711,7 @@ function getTypeLabel(type) {
 function getThemesByCategory(category) {
   const themes = {}
   
-  // Get built-in themes
+  // Get built-in themes and loaded media assets
   Object.entries(store.themes).forEach(([key, theme]) => {
     if (theme.category === category) {
       themes[key] = theme
