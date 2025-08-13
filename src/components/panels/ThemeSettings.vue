@@ -97,12 +97,14 @@
         <div 
           v-for="(theme, key) in filteredThemes" 
           :key="key" 
-          class="col-6 col-md-4 col-lg-3"
+          class="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-2"
         >
           <div 
             class="theme-card-new"
             :class="{ active: store.currentTheme === key }"
             @click="selectTheme(key)"
+            @mouseenter="handleVideoHover(key, $event, true)"
+            @mouseleave="handleVideoHover(key, $event, false)"
           >
             <div class="theme-preview-new">
               <div
@@ -122,6 +124,18 @@
                 class="color-preview"
                 :style="{ backgroundColor: theme.value }"
               ></div>
+              <video
+                v-else-if="theme.type === 'video' || theme.type === 'animated'"
+                :src="theme.value"
+                :poster="getVideoThumbnail(theme)"
+                muted
+                loop
+                class="theme-video"
+                :data-theme-key="key"
+                @error="handleVideoError"
+                @loadeddata="handleVideoLoaded"
+                preload="none"
+              ></video>
               <img
                 v-else
                 :src="getPreviewImage(theme)"
@@ -638,6 +652,28 @@ function getPreviewImage(theme) {
   return theme.value
 }
 
+function getVideoThumbnail(theme) {
+  // Check if theme has a custom thumbnail
+  if (theme.thumbnail) return theme.thumbnail
+  
+  // For YouTube videos, use YouTube thumbnail API
+  if (theme.type === 'youtube' && theme.value) {
+    const videoId = extractYoutubeId(theme.value)
+    if (videoId) {
+      return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
+    }
+  }
+  
+  // For other video types, check if there's a preview image
+  if (theme.preview) return theme.preview
+  
+  // Fallback: try to use a screenshot or poster frame if available
+  if (theme.poster) return theme.poster
+  
+  // Ultimate fallback: return empty string to show a placeholder
+  return ''
+}
+
 function getCanvasPreviewGradient(colors) {
   if (!colors || !colors.length) return 'linear-gradient(45deg, #ff9a9e, #fad0c4)'
   return `linear-gradient(45deg, ${colors.join(', ')})`
@@ -851,6 +887,35 @@ function pausePreview(event) {
   }
 }
 
+// Enhanced video hover handling for the all-themes grid
+function handleVideoHover(themeKey, event, isEntering) {
+  const video = event.currentTarget.querySelector('video')
+  if (!video) return
+  
+  const theme = store.themes[themeKey]
+  if (!theme || (theme.type !== 'video' && theme.type !== 'animated')) return
+  
+  if (isEntering) {
+    // Load video on hover for better performance
+    if (video.readyState < 1) {
+      video.preload = 'metadata'
+      video.load()
+    }
+    
+    const playPromise = video.play()
+    if (playPromise !== undefined) {
+      playPromise.catch(e => {
+        console.warn('Error playing video preview:', e)
+      })
+    }
+  } else {
+    video.pause()
+    video.currentTime = 0
+    // Reset preload to save bandwidth
+    video.preload = 'none'
+  }
+}
+
 // Handle video loading states
 function handleVideoError(event) {
   const video = event.target
@@ -927,6 +992,15 @@ function handleVideoLoaded(event) {
   height: 100%;
   object-fit: cover;
   transition: transform 0.3s ease;
+}
+
+.theme-video {
+  background-color: #1a1a1a;
+  position: relative;
+}
+
+.theme-video[poster] {
+  object-fit: cover;
 }
 
 .theme-card:hover .theme-image,
@@ -1715,8 +1789,19 @@ h3 {
 }
 
 .form-select option {
-  background: var(--color-surface);
-  color: var(--color-text-primary);
+  background: #2d3748;
+  color: #ffffff;
+  padding: 8px 12px;
+}
+
+.form-select option:hover {
+  background: #4a5568;
+  color: #ffffff;
+}
+
+.form-select option:checked {
+  background: var(--color-primary, #7C3AED);
+  color: #ffffff;
 }
 
 /* All Themes Section */
@@ -1797,6 +1882,25 @@ h3 {
     padding-left: 8px;
     padding-right: 8px;
   }
+  
+  .theme-card-new {
+    aspect-ratio: 4/3;
+    min-height: 120px;
+  }
+}
+
+@media (min-width: 576px) {
+  .col-sm-4 {
+    flex: 0 0 auto;
+    width: 33.33333%;
+  }
+}
+
+@media (min-width: 768px) {
+  .col-md-3 {
+    flex: 0 0 auto;
+    width: 25%;
+  }
 }
 
 @media (min-width: 992px) {
@@ -1804,5 +1908,23 @@ h3 {
     flex: 0 0 auto;
     width: 25%;
   }
+}
+
+@media (min-width: 1200px) {
+  .col-xl-2 {
+    flex: 0 0 auto;
+    width: 16.66666%;
+  }
+  
+  .theme-card-new {
+    aspect-ratio: 1;
+    min-height: 140px;
+  }
+}
+
+/* Compact grid spacing */
+.all-themes-section .row {
+  row-gap: 1rem;
+  column-gap: 0.75rem;
 }
 </style>
