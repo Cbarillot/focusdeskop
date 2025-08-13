@@ -47,14 +47,6 @@
       <!-- Default state - no music selected -->
       <div v-if="!store.musicSelected" class="player-content" @click="openMusicSettings" title="Cliquez pour ouvrir les réglages musique">
         <div class="default-state">
-          <div class="default-icon-container">
-            <!-- Music note icon -->
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="default-music-icon">
-              <path d="M12 3V13.55L11.4 13.1C10.8 12.65 10 12.65 9.4 13.1L8 14.1V3H12ZM8 15.35L9.4 14.35C10 14.05 10.6 14.05 11.2 14.35L12 14.9V3H8V15.35ZM6 3V17L10.5 14L15 17V3H6Z" fill="currentColor"/>
-              <circle cx="7" cy="19" r="2" fill="currentColor"/>
-              <circle cx="17" cy="19" r="2" fill="currentColor"/>
-            </svg>
-          </div>
           <div class="default-message">let's play something !</div>
           <div class="default-instruction">Click to select music</div>
         </div>
@@ -1078,28 +1070,6 @@ function handleWindowResize() {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.5);
   transform: scale(1.02);
-}
-
-.default-icon-container {
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 80px;
-  height: 80px;
-  background: rgba(0, 191, 165, 0.1);
-  border-radius: 50%;
-  border: 2px solid rgba(0, 191, 165, 0.3);
-}
-
-.default-music-icon {
-  color: rgba(0, 191, 165, 0.8);
-  transition: all 0.2s ease;
-}
-
-.default-state:hover .default-music-icon {
-  color: rgba(0, 191, 165, 1);
-  transform: scale(1.1);
 }
 
 .default-message {
