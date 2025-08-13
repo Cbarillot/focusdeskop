@@ -61,7 +61,7 @@
         <div class="themes-grid" v-show="sectionOpen.gradients">
           <div
             v-for="(theme, key) in getThemesByCategory('gradients')"
-            v-if="theme"
+            
             :key="key"
             class="theme-card"
             :class="{ active: store.currentTheme === key }"
@@ -104,134 +104,6 @@
         </div>
       </div>
 
-      <!-- Animated Backgrounds Section -->
-      <div class="category-section">
-        <div 
-          class="category-toggle" 
-          role="button" 
-          tabindex="0"
-          @click="toggleSection('animated')" 
-          @keydown.enter="toggleSection('animated')" 
-          @keydown.space.prevent="toggleSection('animated')"
-        >
-          <h4 class="category-title">🎬 Arrière-plans animés</h4>
-          <span class="chevron" :class="{ open: sectionOpen.animated }">▾</span>
-        </div>
-        
-        <div v-show="sectionOpen.animated">
-          <!-- Nature Subcategory -->
-          <h5 class="subcategory-title">🌿 Nature</h5>
-          <div class="themes-grid">
-            <div
-              v-for="(theme, key) in getThemesByCategory('nature')"
-              v-if="theme"
-              :key="key"
-              class="theme-card"
-              :class="{ active: store.currentTheme === key }"
-              @click="selectTheme(key)"
-            >
-              <div class="theme-preview" @mouseenter="playPreview" @mouseleave="pausePreview">
-                <video
-                  :src="theme.value"
-                  muted
-                  loop
-                  class="theme-video"
-                  :data-theme-key="key"
-                  @error="handleImageError"
-                  preload="none"
-                ></video>
-                <div class="theme-type-badge video">
-                  🌿
-                </div>
-                <div class="video-play-indicator">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
-                  </svg>
-                </div>
-              </div>
-              <div class="theme-info">
-                <h4 class="theme-name">{{ theme.name }}</h4>
-                <p class="theme-type">Animation Nature</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Lofi Subcategory -->
-          <h5 class="subcategory-title">🎵 Lofi</h5>
-          <div class="themes-grid">
-            <div
-              v-for="(theme, key) in getThemesByCategory('lofi')"
-              v-if="theme"
-              :key="key"
-              class="theme-card"
-              :class="{ active: store.currentTheme === key }"
-              @click="selectTheme(key)"
-            >
-              <div class="theme-preview" @mouseenter="playPreview" @mouseleave="pausePreview">
-                <video
-                  :src="theme.value"
-                  muted
-                  loop
-                  class="theme-video"
-                  :data-theme-key="key"
-                  @error="handleImageError"
-                  preload="none"
-                ></video>
-                <div class="theme-type-badge video">
-                  🎵
-                </div>
-                <div class="video-play-indicator">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
-                  </svg>
-                </div>
-              </div>
-              <div class="theme-info">
-                <h4 class="theme-name">{{ theme.name }}</h4>
-                <p class="theme-type">Animation Lofi</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Café Subcategory -->
-          <h5 class="subcategory-title">☕ Café</h5>
-          <div class="themes-grid">
-            <div
-              v-for="(theme, key) in getThemesByCategory('cafe')"
-              v-if="theme"
-              :key="key"
-              class="theme-card"
-              :class="{ active: store.currentTheme === key }"
-              @click="selectTheme(key)"
-            >
-              <div class="theme-preview" @mouseenter="playPreview" @mouseleave="pausePreview">
-                <video
-                  :src="theme.value"
-                  muted
-                  loop
-                  class="theme-video"
-                  :data-theme-key="key"
-                  @error="handleImageError"
-                  preload="none"
-                ></video>
-                <div class="theme-type-badge video">
-                  ☕
-                </div>
-                <div class="video-play-indicator">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
-                  </svg>
-                </div>
-              </div>
-              <div class="theme-info">
-                <h4 class="theme-name">{{ theme.name }}</h4>
-                <p class="theme-type">Animation Café</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Images Section -->
       <div class="category-section">
         <div 
@@ -249,7 +121,6 @@
         <div class="themes-grid" v-show="sectionOpen.images">
           <div
             v-for="(theme, key) in getThemesByCategory('images')"
-            v-if="theme"
             :key="key"
             class="theme-card"
             :class="{ active: store.currentTheme === key }"
@@ -261,14 +132,15 @@
                 :alt="theme.name"
                 class="theme-image"
                 @error="handleImageError"
+                loading="lazy"
               />
-              <div class="theme-type-badge" :class="theme.type">
-                {{ getTypeBadge(theme.type) }}
+              <div class="theme-type-badge image">
+                🖼️
               </div>
             </div>
             <div class="theme-info">
               <h4 class="theme-name">{{ theme.name }}</h4>
-              <p class="theme-type">{{ getTypeLabel(theme.type) }}</p>
+              <p class="theme-type">Image</p>
             </div>
           </div>
         </div>
@@ -284,52 +156,47 @@
           @keydown.enter="toggleSection('animated')" 
           @keydown.space.prevent="toggleSection('animated')"
         >
-          <h4 class="category-title">🎬 Fond animés</h4>
+          <h4 class="category-title">🎬 Animated</h4>
           <span class="chevron" :class="{ open: sectionOpen.animated }">▾</span>
         </div>
         
         <div class="themes-grid" v-show="sectionOpen.animated">
           <div
             v-for="(theme, key) in getThemesByCategory('animated')"
-            v-if="theme"
             :key="key"
             class="theme-card"
             :class="{ active: store.currentTheme === key }"
             @click="selectTheme(key)"
           >
-            <div class="theme-preview">
-              <div
-                v-if="theme.type === 'canvas'"
-                class="canvas-preview"
-                :style="{ background: getCanvasPreviewGradient(theme.colors) }"
-              >
-                <div class="canvas-indicator">✨</div>
+            <div class="theme-preview" @mouseenter="playPreview" @mouseleave="pausePreview">
+              <video
+                :src="theme.value"
+                muted
+                loop
+                class="theme-video"
+                :data-theme-key="key"
+                @error="handleVideoError"
+                @loadeddata="handleVideoLoaded"
+                preload="metadata"
+              ></video>
+              <div class="theme-type-badge video">
+                🎬
               </div>
-              <div
-                v-else-if="theme.type === 'animated-gradient'"
-                class="animated-gradient-preview"
-                :style="{ background: getCanvasPreviewGradient(theme.colors) }"
-              >
-                <div class="animated-indicator">⚡</div>
-              </div>
-              <img
-                v-else
-                :src="getPreviewImage(theme)"
-                :alt="theme.name"
-                class="theme-image"
-                @error="handleImageError"
-              />
-              <div class="theme-type-badge" :class="theme.type">
-                {{ getTypeBadge(theme.type) }}
+              <div class="video-play-indicator">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
+                </svg>
               </div>
             </div>
             <div class="theme-info">
               <h4 class="theme-name">{{ theme.name }}</h4>
-              <p class="theme-type">{{ getTypeLabel(theme.type) }}</p>
+              <p class="theme-type">Animation</p>
             </div>
           </div>
         </div>
       </div>
+
+
 
       <!-- YouTube Background Section -->
       <div class="category-section">
@@ -536,12 +403,15 @@ const getContrastColor = (hexColor) => {
 };
 
 // Charger la couleur sauvegardée au montage
-onMounted(() => {
+onMounted(async () => {
   const savedColor = localStorage.getItem('themeColor')
   if (savedColor) {
     customColor.value = savedColor
     updateThemeColor()
   }
+  
+  // Load all media assets from the themes directories
+  await store.loadMediaAssets()
 })
 
 const store = useAppStore()
@@ -593,8 +463,8 @@ const sectionOpen = ref({
   gradients: true,
   images: true,
   animated: true,
-  youtube: true,
-  customGradient: true,
+  youtube: false,
+  customGradient: false,
   gradientPresets: true,
 })
 
@@ -646,7 +516,7 @@ function getTypeLabel(type) {
 function getThemesByCategory(category) {
   const themes = {}
   
-  // Get built-in themes
+  // Get built-in themes and loaded media assets
   Object.entries(store.themes).forEach(([key, theme]) => {
     if (theme.category === category) {
       themes[key] = theme
@@ -660,9 +530,27 @@ function getThemesByCategory(category) {
 function handleImageError(event) {
   const img = event.target
   img.style.display = 'none'
+  
+  // Create a more descriptive fallback for videos
   const fallback = document.createElement('div')
   fallback.className = 'fallback-preview'
-  fallback.textContent = '🌌'
+  
+  if (img.tagName.toLowerCase() === 'video') {
+    fallback.innerHTML = `
+      <div class="fallback-content">
+        <div class="fallback-icon">🎬</div>
+        <div class="fallback-text">Video Preview</div>
+      </div>
+    `
+  } else {
+    fallback.innerHTML = `
+      <div class="fallback-content">
+        <div class="fallback-icon">🌌</div>
+        <div class="fallback-text">Image Preview</div>
+      </div>
+    `
+  }
+  
   img.parentNode.insertBefore(fallback, img.nextSibling)
 }
 
@@ -778,11 +666,24 @@ function addYouTubeBackground() {
   // Vous pouvez ajouter une notification ici si nécessaire
 }
 
-// Video preview optimization methods
+// Video preview optimization methods - improved for better preview loading
 function playPreview(event) {
   const video = event.currentTarget.querySelector('video')
   if (video) {
-    video.play().catch(e => console.error('Error playing video:', e))
+    // Load the video metadata first if not already loaded
+    if (video.readyState < 1) {
+      video.preload = 'metadata'
+      video.load()
+    }
+    
+    // Only play if video has loaded enough data
+    const playPromise = video.play()
+    if (playPromise !== undefined) {
+      playPromise.catch(e => {
+        console.warn('Error playing video preview:', e)
+        // Video failed to play, keep showing poster/fallback
+      })
+    }
   }
 }
 
@@ -791,6 +692,28 @@ function pausePreview(event) {
   if (video) {
     video.pause()
     video.currentTime = 0
+  }
+}
+
+// Handle video loading states
+function handleVideoError(event) {
+  const video = event.target
+  const themeKey = video.getAttribute('data-theme-key')
+  
+  if (themeKey && store.themes[themeKey]) {
+    store.themes[themeKey].videoError = true
+  }
+  
+  // Call original error handler for fallback
+  handleImageError(event)
+}
+
+function handleVideoLoaded(event) {
+  const video = event.target
+  const themeKey = video.getAttribute('data-theme-key')
+  
+  if (themeKey && store.themes[themeKey]) {
+    store.themes[themeKey].videoLoaded = true
   }
 }
 </script>
@@ -893,6 +816,63 @@ function pausePreview(event) {
   height: 24px;
   color: white;
   margin-left: 3px;
+}
+
+.video-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top: 3px solid white;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.fallback-preview {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-align: center;
+}
+
+.fallback-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.fallback-icon {
+  font-size: 32px;
+  opacity: 0.8;
+}
+
+.fallback-text {
+  font-size: 12px;
+  opacity: 0.7;
+  font-weight: 500;
 }
 
 .theme-type-badge.video {
@@ -1194,15 +1174,6 @@ function pausePreview(event) {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.subcategory-title {
-  margin: 16px 0 12px 0;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
 
 .category-toggle {
   display: flex;
