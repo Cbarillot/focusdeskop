@@ -48,9 +48,9 @@
       <div v-if="!store.musicSelected" class="player-content" @click="openMusicSettings" title="Cliquez pour ouvrir les réglages musique">
         <div class="default-state">
           <div class="default-icon-container">
-            <!-- Music player icon from assets -->
+            <!-- Music player icon from assets/icons -->
             <img 
-              src="/music-player-default-state.png" 
+              src="/assets/icons/music player icon.png" 
               alt="Music Player Icon" 
               class="default-music-icon"
             />

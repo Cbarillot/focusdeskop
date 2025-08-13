@@ -112,54 +112,15 @@ function createMediaKey(filename) {
     .toLowerCase()
 }
 
-// Categorize images based on filename and content
+// Categorize images - put ALL images from assets/themes/images into "images" category
 function categorizeImage(filename) {
-  const name = filename.toLowerCase()
-  
-  // Studio Ghibli/Anime themes
-  if (name.includes('ghibli') || name.includes('totoro') || name.includes('kiki') || 
-      name.includes('chihiro') || name.includes('mononoke') || name.includes('howl')) {
-    return 'ghibli'
-  }
-  
-  // Classical art
-  if (name.includes('monet') || name.includes('van-gogh') || name.includes('aivazovsky') || 
-      name.includes('naples') || name.includes('painting')) {
-    return 'classical-art'
-  }
-  
-  // Nature/Landscape
-  if (name.includes('nature') || name.includes('landscape') || name.includes('forest') || 
-      name.includes('river') || name.includes('digital-art')) {
-    return 'nature'
-  }
-  
-  // Default to images category
+  // All images from assets/themes/images go to the "images" category
   return 'images'
 }
 
-// Categorize videos based on filename and content  
+// Categorize videos - put ALL videos from assets/themes/videos into "animated" category
 function categorizeVideo(filename) {
-  const name = filename.toLowerCase()
-  
-  // Lofi category
-  if (name.includes('lofi') || name.includes('chill') || name.includes('evening')) {
-    return 'lofi'
-  }
-  
-  // Café category
-  if (name.includes('coffee') || name.includes('cafe') || name.includes('morning-coffee')) {
-    return 'cafe'
-  }
-  
-  // Nature category (Studio Ghibli and nature scenes)
-  if (name.includes('totoro') || name.includes('flower') || name.includes('forest') || 
-      name.includes('island') || name.includes('spirited') || name.includes('howl') || 
-      name.includes('arrietty') || name.includes('zelda')) {
-    return 'nature'
-  }
-  
-  // Default to animated category
+  // All videos from assets/themes/videos go to the "animated" category
   return 'animated'
 }
 
