@@ -175,9 +175,9 @@
                 loop
                 class="theme-video"
                 :data-theme-key="key"
-                @error="handleImageError"
+                @error="handleVideoError"
+                @loadeddata="handleVideoLoaded"
                 preload="metadata"
-                poster=""
               ></video>
               <div class="theme-type-badge video">
                 🎬
@@ -530,9 +530,27 @@ function getThemesByCategory(category) {
 function handleImageError(event) {
   const img = event.target
   img.style.display = 'none'
+  
+  // Create a more descriptive fallback for videos
   const fallback = document.createElement('div')
   fallback.className = 'fallback-preview'
-  fallback.textContent = '🌌'
+  
+  if (img.tagName.toLowerCase() === 'video') {
+    fallback.innerHTML = `
+      <div class="fallback-content">
+        <div class="fallback-icon">🎬</div>
+        <div class="fallback-text">Video Preview</div>
+      </div>
+    `
+  } else {
+    fallback.innerHTML = `
+      <div class="fallback-content">
+        <div class="fallback-icon">🌌</div>
+        <div class="fallback-text">Image Preview</div>
+      </div>
+    `
+  }
+  
   img.parentNode.insertBefore(fallback, img.nextSibling)
 }
 
@@ -654,14 +672,18 @@ function playPreview(event) {
   if (video) {
     // Load the video metadata first if not already loaded
     if (video.readyState < 1) {
+      video.preload = 'metadata'
       video.load()
     }
     
-    video.currentTime = 0
-    video.play().catch(e => {
-      console.warn('Error playing video preview:', e)
-      // Try to show a fallback or poster frame
-    })
+    // Only play if video has loaded enough data
+    const playPromise = video.play()
+    if (playPromise !== undefined) {
+      playPromise.catch(e => {
+        console.warn('Error playing video preview:', e)
+        // Video failed to play, keep showing poster/fallback
+      })
+    }
   }
 }
 
@@ -670,6 +692,28 @@ function pausePreview(event) {
   if (video) {
     video.pause()
     video.currentTime = 0
+  }
+}
+
+// Handle video loading states
+function handleVideoError(event) {
+  const video = event.target
+  const themeKey = video.getAttribute('data-theme-key')
+  
+  if (themeKey && store.themes[themeKey]) {
+    store.themes[themeKey].videoError = true
+  }
+  
+  // Call original error handler for fallback
+  handleImageError(event)
+}
+
+function handleVideoLoaded(event) {
+  const video = event.target
+  const themeKey = video.getAttribute('data-theme-key')
+  
+  if (themeKey && store.themes[themeKey]) {
+    store.themes[themeKey].videoLoaded = true
   }
 }
 </script>
@@ -772,6 +816,63 @@ function pausePreview(event) {
   height: 24px;
   color: white;
   margin-left: 3px;
+}
+
+.video-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top: 3px solid white;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.fallback-preview {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-align: center;
+}
+
+.fallback-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.fallback-icon {
+  font-size: 32px;
+  opacity: 0.8;
+}
+
+.fallback-text {
+  font-size: 12px;
+  opacity: 0.7;
+  font-weight: 500;
 }
 
 .theme-type-badge.video {
