@@ -43,6 +43,104 @@
       </div>
     </div>
     
+    <!-- Filter Toolbar -->
+    <div class="filters-section">
+      <h3 class="section-title">Filtres de thèmes</h3>
+      <div class="row g-3">
+        <div class="col-6 col-md-3">
+          <select v-model="filters.type" class="form-select">
+            <option value="Tous">Type: Tous</option>
+            <option value="canvas">Canvas</option>
+            <option value="gradient">Gradient</option>
+            <option value="color">Color</option>
+            <option value="image">Image</option>
+            <option value="video">Video</option>
+            <option value="youtube">YouTube</option>
+            <option value="animated">Animated</option>
+            <option value="animated-gradient">Animated Gradient</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <select v-model="filters.environment" class="form-select">
+            <option value="Tous">Environnement: Tous</option>
+            <option value="nature">Nature</option>
+            <option value="cafe">Café</option>
+            <option value="lofi">Lofi</option>
+            <option value="urbain">Urbain</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <select v-model="filters.brightness" class="form-select">
+            <option value="Tous">Luminosité: Tous</option>
+            <option value="clair">Clair</option>
+            <option value="sombre">Sombre</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <select v-model="filters.color" class="form-select">
+            <option value="Tous">Couleur: Tous</option>
+            <option value="violet">Violet</option>
+            <option value="bleu">Bleu</option>
+            <option value="vert">Vert</option>
+            <option value="orange">Orange</option>
+            <option value="rouge">Rouge</option>
+            <option value="gris">Gris</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- All Themes Grid -->
+    <div class="all-themes-section">
+      <h3 class="section-title">Tous les thèmes</h3>
+      <div class="row g-3">
+        <div 
+          v-for="(theme, key) in filteredThemes" 
+          :key="key" 
+          class="col-6 col-md-4 col-lg-3"
+        >
+          <div 
+            class="theme-card-new"
+            :class="{ active: store.currentTheme === key }"
+            @click="selectTheme(key)"
+          >
+            <div class="theme-preview-new">
+              <div
+                v-if="theme.type === 'canvas'"
+                class="canvas-preview"
+                :style="{ background: getCanvasPreviewGradient(theme.colors) }"
+              >
+                <div class="canvas-indicator">✨</div>
+              </div>
+              <div
+                v-else-if="theme.type === 'gradient'"
+                class="gradient-preview"
+                :style="{ background: theme.value }"
+              ></div>
+              <div
+                v-else-if="theme.type === 'color'"
+                class="color-preview"
+                :style="{ backgroundColor: theme.value }"
+              ></div>
+              <img
+                v-else
+                :src="getPreviewImage(theme)"
+                :alt="theme.name"
+                class="theme-image"
+                @error="handleImageError"
+              />
+              <div class="theme-type-badge" :class="theme.type">
+                {{ getTypeBadge(theme.type) }}
+              </div>
+            </div>
+            <div class="theme-info-new">
+              <h4 class="theme-name">{{ theme.name }}</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <div class="theme-categories">
       <!-- Gradients & Colors Section -->
       <div class="category-section">
@@ -419,6 +517,14 @@ const youtubeUrl = ref('')
 const youtubeError = ref('')
 const customGradientColors = ref(['#4F46E5', '#7C3AED', '#EC4899', '#F59E0B'])
 
+// Filter state
+const filters = ref({
+  type: 'Tous',
+  environment: 'Tous',
+  brightness: 'Tous',
+  color: 'Tous'
+})
+
 // Exemples de vidéos YouTube
 const youtubeExamples = [
   {
@@ -456,6 +562,56 @@ const youtubeExamples = [
 // Compute the gradient preview
 const customGradientPreview = computed(() => {
   return `linear-gradient(45deg, ${customGradientColors.value.join(', ')})`
+})
+
+// Compute filtered themes
+const filteredThemes = computed(() => {
+  const allThemes = store.themes
+  let filtered = {}
+
+  Object.entries(allThemes).forEach(([key, theme]) => {
+    let includeTheme = true
+
+    // Type filter - defensive approach
+    if (filters.value.type !== 'Tous') {
+      if (theme.type && theme.type !== filters.value.type) {
+        includeTheme = false
+      } else if (!theme.type && filters.value.type !== 'Tous') {
+        // If theme has no type but filter is set, exclude only if we're looking for a specific type
+        includeTheme = false
+      }
+    }
+
+    // Environment filter - defensive approach (only filter if theme has environmentTag)
+    if (includeTheme && filters.value.environment !== 'Tous') {
+      if (theme.environmentTag && theme.environmentTag !== filters.value.environment) {
+        includeTheme = false
+      }
+      // If theme doesn't have environmentTag, don't exclude it
+    }
+
+    // Brightness filter - defensive approach (only filter if theme has brightnessTag)
+    if (includeTheme && filters.value.brightness !== 'Tous') {
+      if (theme.brightnessTag && theme.brightnessTag !== filters.value.brightness) {
+        includeTheme = false
+      }
+      // If theme doesn't have brightnessTag, don't exclude it
+    }
+
+    // Color filter - defensive approach (only filter if theme has colorTag)
+    if (includeTheme && filters.value.color !== 'Tous') {
+      if (theme.colorTag && theme.colorTag !== filters.value.color) {
+        includeTheme = false
+      }
+      // If theme doesn't have colorTag, don't exclude it
+    }
+
+    if (includeTheme) {
+      filtered[key] = theme
+    }
+  })
+
+  return filtered
 })
 
 // Collapsible sections state
@@ -1521,5 +1677,132 @@ h3 {
   font-size: 0.75rem;
   color: var(--color-text-secondary);
   opacity: 0.8;
+}
+
+/* Filters Section */
+.filters-section {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.filters-section .section-title {
+  margin-bottom: 16px;
+  color: var(--color-text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.form-select {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: var(--color-text-primary);
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.form-select:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb, 139, 92, 246), 0.3);
+  outline: none;
+  color: var(--color-text-primary);
+}
+
+.form-select option {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+/* All Themes Section */
+.all-themes-section {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.all-themes-section .section-title {
+  margin-bottom: 20px;
+  color: var(--color-text-primary);
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* New Theme Cards for All Themes Grid */
+.theme-card-new {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 3px solid transparent;
+  position: relative;
+  aspect-ratio: 4/3;
+  height: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.theme-card-new:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.theme-card-new.active {
+  border-color: white;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5), 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.theme-preview-new {
+  position: relative;
+  width: 100%;
+  height: calc(100% - 40px);
+  overflow: hidden;
+  border-radius: 8px 8px 0 0;
+}
+
+.theme-info-new {
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.theme-info-new .theme-name {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Responsive adjustments for Bootstrap grid */
+@media (max-width: 768px) {
+  .all-themes-section .row {
+    margin-left: -8px;
+    margin-right: -8px;
+  }
+  
+  .all-themes-section .row > * {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+
+@media (min-width: 992px) {
+  .col-lg-3 {
+    flex: 0 0 auto;
+    width: 25%;
+  }
 }
 </style>
