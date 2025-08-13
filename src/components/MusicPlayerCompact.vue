@@ -47,14 +47,6 @@
       <!-- Default state - no music selected -->
       <div v-if="!store.musicSelected" class="player-content" @click="openMusicSettings" title="Cliquez pour ouvrir les réglages musique">
         <div class="default-state">
-          <div class="default-icon-container">
-            <!-- Music player icon from assets/icons -->
-            <img 
-              src="/assets/icons/music player icon.png" 
-              alt="Music Player Icon" 
-              class="default-music-icon"
-            />
-          </div>
           <div class="default-message">let's play something !</div>
           <div class="default-instruction">Click to select music</div>
         </div>
@@ -1078,32 +1070,6 @@ function handleWindowResize() {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.5);
   transform: scale(1.02);
-}
-
-.default-icon-container {
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 90px;
-  height: 90px;
-  background: rgba(0, 191, 165, 0.05);
-  border-radius: 50%;
-  border: 2px solid rgba(0, 191, 165, 0.2);
-  transition: all 0.2s ease;
-}
-
-.default-music-icon {
-  width: 60px;
-  height: 60px;
-  color: rgba(0, 191, 165, 0.8);
-  transition: all 0.2s ease;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-}
-
-.default-state:hover .default-music-icon {
-  transform: scale(1.1);
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
 }
 
 .default-message {

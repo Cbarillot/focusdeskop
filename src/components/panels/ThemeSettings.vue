@@ -97,7 +97,7 @@
         <div 
           v-for="(theme, key) in filteredThemes" 
           :key="key" 
-          class="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-2"
+          class="col-6 col-sm-3 col-md-3 col-lg-3 col-xl-3"
         >
           <div 
             class="theme-card-new"
@@ -136,12 +136,19 @@
                 @loadeddata="handleVideoLoaded"
                 preload="none"
               ></video>
+              <div
+                v-else-if="!getPreviewImage(theme) || theme.previewError"
+                class="color-preview fallback-color"
+                :style="{ backgroundColor: getThemeMainColor(theme) }"
+              >
+                <div class="fallback-indicator">{{ getTypeBadge(theme.type) }}</div>
+              </div>
               <img
                 v-else
                 :src="getPreviewImage(theme)"
                 :alt="theme.name"
                 class="theme-image"
-                @error="handleImageError"
+                @error="handleImageError($event, key)"
               />
               <div class="theme-type-badge" :class="theme.type">
                 {{ getTypeBadge(theme.type) }}
@@ -652,6 +659,41 @@ function getPreviewImage(theme) {
   return theme.value
 }
 
+function getThemeMainColor(theme) {
+  if (!theme) return '#667eea'
+  
+  // For color themes, return the color directly
+  if (theme.type === 'color' && theme.value) {
+    return theme.value
+  }
+  
+  // For gradient themes, extract the first color
+  if (theme.type === 'gradient' && theme.value) {
+    const match = theme.value.match(/#[a-fA-F0-9]{6}|#[a-fA-F0-9]{3}|rgb\([^)]+\)|rgba\([^)]+\)|hsl\([^)]+\)|hsla\([^)]+\)/)
+    return match ? match[0] : '#667eea'
+  }
+  
+  // For canvas themes, use the first color from colors array
+  if (theme.type === 'canvas' && theme.colors && theme.colors.length > 0) {
+    return theme.colors[0]
+  }
+  
+  // For other types (video, image, etc.), use a default color
+  // Based on theme name or default to a purple gradient
+  if (theme.name) {
+    const name = theme.name.toLowerCase()
+    if (name.includes('blue') || name.includes('ocean')) return '#3B82F6'
+    if (name.includes('green') || name.includes('forest')) return '#10B981'
+    if (name.includes('red') || name.includes('sunset')) return '#EF4444'
+    if (name.includes('orange')) return '#F59E0B'
+    if (name.includes('purple') || name.includes('violet')) return '#8B5CF6'
+    if (name.includes('pink')) return '#EC4899'
+  }
+  
+  // Default fallback color
+  return '#667eea'
+}
+
 function getVideoThumbnail(theme) {
   // Check if theme has a custom thumbnail
   if (theme.thumbnail) return theme.thumbnail
@@ -719,31 +761,39 @@ function getThemesByCategory(category) {
 }
 
 // Gestion des erreurs d'image
-function handleImageError(event) {
+function handleImageError(event, themeKey = null) {
   const img = event.target
-  img.style.display = 'none'
   
-  // Create a more descriptive fallback for videos
-  const fallback = document.createElement('div')
-  fallback.className = 'fallback-preview'
-  
-  if (img.tagName.toLowerCase() === 'video') {
-    fallback.innerHTML = `
-      <div class="fallback-content">
-        <div class="fallback-icon">🎬</div>
-        <div class="fallback-text">Video Preview</div>
-      </div>
-    `
-  } else {
-    fallback.innerHTML = `
-      <div class="fallback-content">
-        <div class="fallback-icon">🌌</div>
-        <div class="fallback-text">Image Preview</div>
-      </div>
-    `
+  // Mark the theme as having a preview error if themeKey is provided
+  if (themeKey && store.themes[themeKey]) {
+    store.themes[themeKey].previewError = true
   }
   
-  img.parentNode.insertBefore(fallback, img.nextSibling)
+  img.style.display = 'none'
+  
+  // For the old categorized sections, create fallback as before
+  if (!themeKey) {
+    const fallback = document.createElement('div')
+    fallback.className = 'fallback-preview'
+    
+    if (img.tagName.toLowerCase() === 'video') {
+      fallback.innerHTML = `
+        <div class="fallback-content">
+          <div class="fallback-icon">🎬</div>
+          <div class="fallback-text">Video Preview</div>
+        </div>
+      `
+    } else {
+      fallback.innerHTML = `
+        <div class="fallback-content">
+          <div class="fallback-icon">🌌</div>
+          <div class="fallback-text">Image Preview</div>
+        </div>
+      `
+    }
+    
+    img.parentNode.insertBefore(fallback, img.nextSibling)
+  }
 }
 
 // Gestion des dégradés personnalisés
@@ -923,10 +973,11 @@ function handleVideoError(event) {
   
   if (themeKey && store.themes[themeKey]) {
     store.themes[themeKey].videoError = true
+    store.themes[themeKey].previewError = true
   }
   
-  // Call original error handler for fallback
-  handleImageError(event)
+  // Call original error handler for fallback in categorized sections
+  handleImageError(event, themeKey)
 }
 
 function handleVideoLoaded(event) {
@@ -1890,9 +1941,9 @@ h3 {
 }
 
 @media (min-width: 576px) {
-  .col-sm-4 {
+  .col-sm-3 {
     flex: 0 0 auto;
-    width: 33.33333%;
+    width: 25%;
   }
 }
 
@@ -1911,15 +1962,32 @@ h3 {
 }
 
 @media (min-width: 1200px) {
-  .col-xl-2 {
+  .col-xl-3 {
     flex: 0 0 auto;
-    width: 16.66666%;
+    width: 25%;
   }
   
   .theme-card-new {
-    aspect-ratio: 1;
+    aspect-ratio: 4/3;
     min-height: 140px;
   }
+}
+
+/* Fallback color preview for themes without images */
+.fallback-color {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.fallback-indicator {
+  font-size: 2.5rem;
+  opacity: 0.7;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  filter: drop-shadow(0 1px 2px rgba(255, 255, 255, 0.1));
 }
 
 /* Compact grid spacing */
