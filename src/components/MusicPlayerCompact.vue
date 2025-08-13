@@ -50,7 +50,7 @@
           <div class="default-icon-container">
             <!-- Music player icon from assets -->
             <img 
-              src="/assets/icons/music-player-icon.svg" 
+              src="/music-player-default-state.png" 
               alt="Music Player Icon" 
               class="default-music-icon"
             />

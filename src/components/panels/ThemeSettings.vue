@@ -121,16 +121,23 @@
         <div v-show="sectionOpen.animated">
           <!-- Nature Subcategory -->
           <h5 class="subcategory-title">🌿 Nature</h5>
+          <!-- Debug: Show count of nature themes -->
+          <div style="color: red; font-weight: bold; padding: 10px;">
+            DEBUG: Nature themes found: {{ Object.keys(getThemesByCategory('nature')).length }}
+            <br>Keys: {{ Object.keys(getThemesByCategory('nature')).slice(0, 3) }}
+          </div>
           <div class="themes-grid">
             <div
               v-for="(theme, key) in getThemesByCategory('nature')"
-              v-if="theme"
               :key="key"
               class="theme-card"
               :class="{ active: store.currentTheme === key }"
               @click="selectTheme(key)"
             >
               <div class="theme-preview" @mouseenter="playPreview" @mouseleave="pausePreview">
+                <div style="background: red; color: white; padding: 10px;">
+                  DEBUG THEME: {{ theme?.name || 'No name' }} (Type: {{ theme?.type }})
+                </div>
                 <video
                   :src="theme.value"
                   muted
@@ -711,12 +718,21 @@ function getTypeLabel(type) {
 function getThemesByCategory(category) {
   const themes = {}
   
+  // Debug logging
+  console.log(`Getting themes for category: ${category}`)
+  console.log(`Total themes available: ${Object.keys(store.themes).length}`)
+  
   // Get built-in themes and loaded media assets
   Object.entries(store.themes).forEach(([key, theme]) => {
-    if (theme.category === category) {
+    if (theme && theme.category === category) {
       themes[key] = theme
     }
   })
+  
+  console.log(`Found ${Object.keys(themes).length} themes for category ${category}`)
+  if (Object.keys(themes).length > 0) {
+    console.log(`Sample theme:`, Object.values(themes)[0])
+  }
   
   return themes
 }

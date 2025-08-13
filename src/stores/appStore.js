@@ -202,12 +202,26 @@ const themes = ref({
   // Load media assets from the file system
   async function loadMediaAssets() {
     try {
+      console.log('Starting media assets loading...')
       const mediaAssets = await loadAllMediaAssets()
+      
+      console.log(`Loaded ${Object.keys(mediaAssets).length} media assets from themes directories`)
+      
+      // Debug: Log sample assets
+      if (Object.keys(mediaAssets).length > 0) {
+        console.log('Sample media assets:', Object.keys(mediaAssets).slice(0, 5))
+        console.log('Sample asset details:', Object.values(mediaAssets)[0])
+        
+        // Debug: Log categories
+        const categories = [...new Set(Object.values(mediaAssets).map(asset => asset.category))]
+        console.log('Available categories:', categories)
+      }
       
       // Merge the loaded media assets with existing themes
       Object.assign(themes.value, mediaAssets)
       
-      console.log(`Loaded ${Object.keys(mediaAssets).length} media assets from themes directories`)
+      console.log('After merging, total themes:', Object.keys(themes.value).length)
+      
       return mediaAssets
     } catch (error) {
       console.error('Failed to load media assets:', error)
