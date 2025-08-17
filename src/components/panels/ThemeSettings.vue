@@ -92,12 +92,17 @@
 
     <!-- All Themes Grid -->
     <div class="all-themes-section">
-      <h3 class="section-title">Tous les thèmes</h3>
-      <div class="row g-3">
+      <div class="section-header" @click="showAllThemes = !showAllThemes">
+        <h3 class="section-title">Tous les thèmes</h3>
+        <span class="toggle-icon">
+          {{ showAllThemes ? '−' : '+' }}
+        </span>
+      </div>
+      <div class="themes-grid" v-show="showAllThemes">
         <div 
           v-for="(theme, key) in filteredThemes" 
-          :key="key" 
-          class="col-6 col-sm-3 col-md-3 col-lg-3 col-xl-3"
+          :key="key"
+          class="theme-card-new-wrapper"
         >
           <div 
             class="theme-card-new"
@@ -124,32 +129,27 @@
                 class="color-preview"
                 :style="{ backgroundColor: theme.value }"
               ></div>
-              <video
-                v-else-if="theme.type === 'video' || theme.type === 'animated'"
-                :src="theme.value"
-                :poster="getVideoThumbnail(theme)"
-                muted
-                loop
-                class="theme-video"
-                :data-theme-key="key"
-                @error="handleVideoError"
-                @loadeddata="handleVideoLoaded"
-                preload="none"
-              ></video>
-              <div
-                v-else-if="!getPreviewImage(theme) || theme.previewError"
-                class="color-preview fallback-color"
-                :style="{ backgroundColor: getThemeMainColor(theme) }"
-              >
-                <div class="fallback-indicator">{{ getTypeBadge(theme.type) }}</div>
+              <div v-if="theme.type === 'video'" class="video-thumbnail-container">
+                <img 
+                  :src="getVideoThumbnail(theme)" 
+                  class="video-thumbnail"
+                  :alt="theme.name"
+                  loading="lazy"
+                  @error="handleImageError($event, key)"
+                >
+                <div class="play-icon">▶️</div>
               </div>
               <img
-                v-else
+                v-else-if="getPreviewImage(theme) && !theme.previewError"
                 :src="getPreviewImage(theme)"
                 :alt="theme.name"
                 class="theme-image"
                 @error="handleImageError($event, key)"
+                loading="lazy"
               />
+              <div v-else class="theme-preview-placeholder">
+                {{ theme.name?.charAt(0) || '?' }}
+              </div>
               <div class="theme-type-badge" :class="theme.type">
                 {{ getTypeBadge(theme.type) }}
               </div>
@@ -288,7 +288,18 @@
             @click="selectTheme(key)"
           >
             <div class="theme-preview" @mouseenter="playPreview" @mouseleave="pausePreview">
+              <div v-if="theme.type === 'video'" class="video-thumbnail-container">
+                <img 
+                  :src="getVideoThumbnail(theme)" 
+                  class="video-thumbnail"
+                  :alt="theme.name"
+                  loading="lazy"
+                  @error="handleImageError($event, key)"
+                >
+                <div class="play-icon">▶️</div>
+              </div>
               <video
+                v-else
                 :src="theme.value"
                 muted
                 loop
@@ -464,6 +475,9 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useAppStore } from '../../stores/appStore'
+
+// État pour gérer la visibilité de la section Tous les thèmes
+const showAllThemes = ref(false)
 
 // Couleurs prédéfinies pour le thème
 const colorPresets = [
@@ -1715,9 +1729,179 @@ h3 {
 
 .themes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 16px;
-  margin-top: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+  padding: 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.theme-card-new-wrapper {
+  aspect-ratio: 1;
+  min-width: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.theme-card-new {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  aspect-ratio: 9/12; /* Format plus vertical */
+}
+
+.theme-card-new:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  border-color: var(--color-primary, #3B82F6);
+}
+
+.theme-card-new.active {
+  border: 2px solid var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-30);
+}
+
+.theme-preview-new {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--color-bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+}
+
+.theme-info-new {
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.theme-name {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  padding: 4px 2px;
+  line-height: 1.2;
+}
+
+/* Conteneur de miniature vidéo */
+.video-thumbnail-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+.video-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.play-icon {
+  position: absolute;
+  font-size: 2rem;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  opacity: 0.9;
+  transition: transform 0.2s ease;
+}
+
+.video-thumbnail-container:hover .video-thumbnail {
+  opacity: 0.6;
+}
+.video-thumbnail-container:hover .play-icon {
+  transform: scale(1.1);
+}
+
+/* Styles pour les aperçus de thèmes */
+.gradient-preview,
+.canvas-preview,
+.color-preview,
+.theme-video,
+.theme-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.theme-preview-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-secondary);
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+/* Badge de type de thème */
+.theme-type-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border-radius: 16px;
+  padding: 4px 10px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Ajustements responsifs */
+@media (min-width: 1200px) {
+  .themes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 16px;
+  }
+}
+
+@media (max-width: 1199px) and (min-width: 992px) {
+  .themes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 14px;
+  }
+}
+
+@media (max-width: 991px) and (min-width: 768px) {
+  .themes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+  }
+}
+
+@media (max-width: 767px) {
+  .themes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+  }
 }
 
 .theme-card {
@@ -1860,7 +2044,26 @@ h3 {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   padding: 20px;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
+  
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px 0;
+    
+    &:hover {
+      opacity: 0.8;
+    }
+    
+    .toggle-icon {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--color-text-secondary);
+      transition: transform 0.2s ease;
+    }
+  }
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }

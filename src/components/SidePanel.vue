@@ -68,10 +68,10 @@ import MusicIcon from './icons/MusicIcon.vue'
 import TodoIcon from './icons/TodoIcon.vue'
 
 const store = useAppStore()
-const panelWidth = ref(400) // Largeur par défaut
+const panelWidth = ref(500) // Largeur par défaut augmentée pour mieux afficher le contenu
 const isResizing = ref(false)
 const startX = ref(0)
-const startWidth = ref(400)
+const startWidth = ref(500)
 
 const minWidth = 300
 const maxWidth = 800

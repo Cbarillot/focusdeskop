@@ -49,13 +49,7 @@ const sampleThemes = {
     value: 'linear-gradient(45deg, #4facfe, #00f2fe)',
     category: 'gradients'
   },
-  'nature-forest': {
-    name: 'Misty Forest',
-    type: 'image',
-    value: '/assets/themes/images/forest.jpg',
-    preview: '/assets/themes/images/forest-preview.jpg',
-    category: 'images'
-  },
+  // Thème Misty Forest supprimé car les fichiers associés sont manquants
   'animated-lava': {
     name: 'Lava Lamp',
     type: 'canvas',
@@ -100,37 +94,7 @@ const themes = ref({
   // Existing manually defined themes will be preserved...
   // These will be merged with automatically loaded media assets
 
-  // Palette themes
-  home: {
-    name: 'Home',
-    colors: {
-      primary: '#8B5CF6',
-      primaryDark: '#7C3AED',
-      secondary: '#A78BFA',
-      accent: '#EC4899',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-    }
-  },
-  ambiance: {
-    name: 'Ambiance',
-    colors: {
-      primary: '#10B981',
-      primaryDark: '#059669',
-      secondary: '#6EE7B7',
-      accent: '#34D399',
-      background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)'
-    }
-  },
-  focus: {
-    name: 'Focus',
-    colors: {
-      primary: '#F59E0B',
-      primaryDark: '#D97706',
-      secondary: '#FCD34D',
-      accent: '#FBBF24',
-      background: 'linear-gradient(135deg, #92400e 0%, #b45309 100%)'
-    }
-  }
+  // Palette themes - Les thèmes 'home', 'ambiance' et 'focus' ont été supprimés pour éviter la confusion avec les moods
 })
   
   // Music state - Universal music component with URL support

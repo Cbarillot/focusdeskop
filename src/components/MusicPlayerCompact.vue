@@ -47,6 +47,9 @@
       <!-- Default state - no music selected -->
       <div v-if="!store.musicSelected" class="player-content" @click="openMusicSettings" title="Cliquez pour ouvrir les réglages musique">
         <div class="default-state">
+          <div class="vinyl-placeholder">
+            <img src="/assets/icons/playervinyleicon.png" alt="Vinyle" class="default-vinyl" />
+          </div>
           <div class="default-message">let's play something !</div>
           <div class="default-instruction">Click to select music</div>
         </div>
@@ -1040,14 +1043,6 @@ function handleWindowResize() {
   gap: 8px;
 }
 
-/* Track info at bottom */
-.track-info-bottom {
-  margin-top: auto;
-  margin-bottom: 0;
-  width: 100%;
-  text-align: center;
-}
-
 /* Default state styles - optimized 200x200px format */
 .default-state {
   display: flex;
@@ -1056,10 +1051,11 @@ function handleWindowResize() {
   justify-content: center;
   text-align: center;
   padding: 20px;
+  color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
-  transition: all 0.2s ease;
-  width: 200px; /* Target 200x200px as requested */
-  height: 160px; /* Slightly reduced to accommodate text */
+  transition: all 0.3s ease;
+  height: 100%;
+  width: 200px;
   margin: 0 auto;
   border: 2px dashed rgba(255, 255, 255, 0.3);
   border-radius: 12px;
@@ -1070,6 +1066,29 @@ function handleWindowResize() {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.5);
   transform: scale(1.02);
+}
+
+.vinyl-placeholder {
+  width: 150px; /* Augmenté de 100px à 150px (x1.5) */
+  height: 150px; /* Augmenté de 100px à 150px (x1.5) */
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.vinyl-placeholder:hover {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.default-vinyl {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
 }
 
 .default-message {

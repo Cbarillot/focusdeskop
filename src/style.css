@@ -3,10 +3,10 @@
 
 :root {
   /* Dynamic theme colors - can be updated via JS */
-  --color-primary: #8B5CF6;
-  --color-primary-dark: #7C3AED;
-  --color-secondary: #A78BFA;
-  --color-accent: #EC4899;
+  --color-primary: var(--accent-color, #8B5CF6);
+  --color-primary-dark: color-mix(in srgb, var(--accent-color, #7C3AED), black 15%);
+  --color-secondary: color-mix(in srgb, var(--accent-color, #A78BFA), white 30%);
+  --color-accent: var(--accent-color, #8B5CF6);
   
   /* Static colors */
   --color-bg-dark: #1a1a1a;
