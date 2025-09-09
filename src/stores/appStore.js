@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { loadAllMediaAssets } from '../utils/mediaLoader.js'
+import { getAudioNotification } from '../utils/audioNotification.js'
 
 export const useAppStore = defineStore('app', () => {
   // Timer state
@@ -19,6 +20,11 @@ export const useAppStore = defineStore('app', () => {
   const autoStartBreaks = ref(false)
   const autoStartPomodoros = ref(false)
   const longBreakInterval = ref(4) // After every 4 pomodoros
+  
+  // Audio notification settings
+  const audioNotificationsEnabled = ref(true)
+  const workEndSoundEnabled = ref(true)
+  const breakEndSoundEnabled = ref(true)
   
   // Timer display settings
   const timerDisplayMode = ref('focus') // focus, ambiance, home
@@ -196,6 +202,9 @@ const themes = ref({
         timerInterval = null
       }
       
+      // Play audio notification
+      playTimerNotification()
+      
       // Auto-switch to next mode (simplified logic)
       if (timerMode.value === 'pomodoro') {
         cycle.value++
@@ -229,6 +238,25 @@ const themes = ref({
     }
   }
   
+  // Audio notification function
+  async function playTimerNotification() {
+    if (!audioNotificationsEnabled.value) return
+    
+    try {
+      const audioNotification = getAudioNotification()
+      
+      if (timerMode.value === 'pomodoro' && workEndSoundEnabled.value) {
+        // Work session ended
+        await audioNotification.playWorkEndBell()
+      } else if ((timerMode.value === 'shortBreak' || timerMode.value === 'longBreak') && breakEndSoundEnabled.value) {
+        // Break ended
+        await audioNotification.playBreakEndBell()
+      }
+    } catch (error) {
+      console.warn('Error playing timer notification:', error)
+    }
+  }
+  
   // Actions
   function toggleTimer() {
     isRunning.value = !isRunning.value
@@ -250,6 +278,24 @@ const themes = ref({
       timerInterval = null
     }
     timeRemaining.value = currentModeTime.value
+  }
+  
+  function addFiveMinutes() {
+    // Add 5 minutes (300 seconds) to current timer
+    timeRemaining.value += 300
+    
+    // Also update the base time for this mode so reset works correctly
+    switch (timerMode.value) {
+      case 'pomodoro':
+        pomodoroTime.value += 300
+        break
+      case 'shortBreak':
+        shortBreakTime.value += 300
+        break
+      case 'longBreak':
+        longBreakTime.value += 300
+        break
+    }
   }
   
   function switchMode(mode) {
@@ -681,6 +727,30 @@ const themes = ref({
     }
   }
   
+  // Audio notification settings
+  function toggleAudioNotifications() {
+    audioNotificationsEnabled.value = !audioNotificationsEnabled.value
+  }
+  
+  function toggleWorkEndSound() {
+    workEndSoundEnabled.value = !workEndSoundEnabled.value
+  }
+  
+  function toggleBreakEndSound() {
+    breakEndSoundEnabled.value = !breakEndSoundEnabled.value
+  }
+  
+  // Test audio notification
+  async function testAudioNotification() {
+    try {
+      const audioNotification = getAudioNotification()
+      return await audioNotification.testSound()
+    } catch (error) {
+      console.warn('Error testing audio:', error)
+      return false
+    }
+  }
+  
   return {
     // State
     timerMode,
@@ -693,6 +763,9 @@ const themes = ref({
     autoStartBreaks,
     autoStartPomodoros,
     longBreakInterval,
+    audioNotificationsEnabled,
+    workEndSoundEnabled,
+    breakEndSoundEnabled,
     timerDisplayMode,
     sidebarOpen,
     activeTab,
@@ -739,6 +812,7 @@ const themes = ref({
     // Actions
     toggleTimer,
     resetTimer,
+    addFiveMinutes,
     switchMode,
     toggleSidebar,
     setActiveTab,
@@ -773,6 +847,10 @@ const themes = ref({
     toggleAutoStartBreaks,
     toggleAutoStartPomodoros,
     setLongBreakInterval,
+    toggleAudioNotifications,
+    toggleWorkEndSound,
+    toggleBreakEndSound,
+    testAudioNotification,
     setMood: (newMood) => { mood.value = newMood },
     loadMediaAssets
   }

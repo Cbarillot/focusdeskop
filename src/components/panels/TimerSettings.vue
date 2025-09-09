@@ -101,6 +101,61 @@
     </div>
     
     <div class="section">
+      <h3 class="section-title">Audio Notifications</h3>
+      <p class="section-description">Sound alerts when timer sessions complete.</p>
+      
+      <div class="toggle-group">
+        <label class="toggle-label">
+          <input 
+            type="checkbox" 
+            class="toggle-input"
+            :checked="store.audioNotificationsEnabled"
+            @change="store.toggleAudioNotifications()"
+          />
+          <span class="toggle-slider"></span>
+          <span>Enable audio notifications</span>
+        </label>
+        
+        <label class="toggle-label" :class="{ disabled: !store.audioNotificationsEnabled }">
+          <input 
+            type="checkbox" 
+            class="toggle-input"
+            :checked="store.workEndSoundEnabled"
+            :disabled="!store.audioNotificationsEnabled"
+            @change="store.toggleWorkEndSound()"
+          />
+          <span class="toggle-slider"></span>
+          <span>Work session end bell (bright tone)</span>
+        </label>
+        
+        <label class="toggle-label" :class="{ disabled: !store.audioNotificationsEnabled }">
+          <input 
+            type="checkbox" 
+            class="toggle-input"
+            :checked="store.breakEndSoundEnabled"
+            :disabled="!store.audioNotificationsEnabled"
+            @change="store.toggleBreakEndSound()"
+          />
+          <span class="toggle-slider"></span>
+          <span>Break end bell (gentle tone)</span>
+        </label>
+      </div>
+      
+      <div class="test-audio">
+        <button 
+          class="test-btn"
+          @click="testAudio"
+          :disabled="!store.audioNotificationsEnabled"
+        >
+          🔊 Test Audio
+        </button>
+        <span v-if="audioTestResult !== null" class="test-result" :class="{ success: audioTestResult, error: !audioTestResult }">
+          {{ audioTestResult ? '✓ Audio working' : '✗ Audio failed' }}
+        </span>
+      </div>
+    </div>
+    
+    <div class="section">
       <h3 class="section-title">Timer Display Mode</h3>
       <p class="section-description">Choose how the timer appears on your screen.</p>
       
@@ -136,9 +191,32 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import { useAppStore } from '../../stores/appStore'
 
 const store = useAppStore()
+const audioTestResult = ref(null)
+
+async function testAudio() {
+  audioTestResult.value = null
+  
+  try {
+    const result = await store.testAudioNotification()
+    audioTestResult.value = result
+    
+    // Clear result after 3 seconds
+    setTimeout(() => {
+      audioTestResult.value = null
+    }, 3000)
+  } catch (error) {
+    console.error('Audio test error:', error)
+    audioTestResult.value = false
+    
+    setTimeout(() => {
+      audioTestResult.value = null
+    }, 3000)
+  }
+}
 
 const displayModes = [
   {
@@ -398,6 +476,63 @@ const displayModes = [
   margin: 0;
   font-size: 14px;
   color: var(--color-text-secondary);
+}
+
+/* Audio notifications styles */
+.toggle-label.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle-label.disabled .toggle-input:disabled + .toggle-slider {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  cursor: not-allowed;
+}
+
+.test-audio {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+.test-btn {
+  padding: 8px 16px;
+  border-radius: var(--border-radius-sm);
+  background: rgba(0, 191, 165, 0.15);
+  border: 1px solid rgba(0, 191, 165, 0.3);
+  color: rgba(0, 191, 165, 0.9);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.test-btn:hover:not(:disabled) {
+  background: rgba(0, 191, 165, 0.25);
+  color: rgba(0, 191, 165, 1);
+  transform: translateY(-1px);
+}
+
+.test-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.test-result {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.test-result.success {
+  color: #10b981;
+}
+
+.test-result.error {
+  color: #ef4444;
 }
 
 /* Responsive */
