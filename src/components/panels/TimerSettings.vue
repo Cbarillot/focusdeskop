@@ -53,38 +53,74 @@
     
     <div class="section">
       <h3 class="section-title">Auto Start</h3>
+      <p class="section-description">Automatically transition between work sessions and breaks.</p>
       
       <div class="toggle-group">
-        <label class="toggle-label">
+        <label class="toggle-label highlight">
           <input 
             type="checkbox" 
             class="toggle-input"
-            :checked="store.autoStartBreaks"
-            @change="store.toggleAutoStartBreaks()"
+            :checked="store.autoChainEnabled"
+            @change="store.toggleAutoChain()"
           />
           <span class="toggle-slider"></span>
-          <span>Auto start breaks</span>
+          <span>Auto-chain sessions (fully automatic)</span>
         </label>
-        
-        <label class="toggle-label">
-          <input 
-            type="checkbox" 
-            class="toggle-input"
-            :checked="store.autoStartPomodoros"
-            @change="store.toggleAutoStartPomodoros()"
-          />
-          <span class="toggle-slider"></span>
-          <span>Auto start pomodoros</span>
+        <p class="feature-description">When enabled, automatically starts the next session after each timer completes.</p>
+      </div>
+      
+      <div class="advanced-settings" v-if="!store.autoChainEnabled">
+        <h4>Manual Controls</h4>
+        <div class="toggle-group">
+          <label class="toggle-label">
+            <input 
+              type="checkbox" 
+              class="toggle-input"
+              :checked="store.autoStartBreaks"
+              @change="store.toggleAutoStartBreaks()"
+            />
+            <span class="toggle-slider"></span>
+            <span>Auto start breaks</span>
+          </label>
+          
+          <label class="toggle-label">
+            <input 
+              type="checkbox" 
+              class="toggle-input"
+              :checked="store.autoStartPomodoros"
+              @change="store.toggleAutoStartPomodoros()"
+            />
+            <span class="toggle-slider"></span>
+            <span>Auto start pomodoros</span>
+          </label>
+        </div>
+      </div>
+      
+      <div class="auto-start-settings" v-if="store.autoChainEnabled || store.autoStartBreaks || store.autoStartPomodoros">
+        <label class="setting-label">
+          <span>Auto-start delay</span>
+          <div class="time-input">
+            <input 
+              type="number" 
+              :value="store.autoStartDelay"
+              @input="store.setAutoStartDelay($event.target.value)"
+              min="0"
+              max="30"
+              class="time-field"
+            />
+            <span class="time-unit">seconds</span>
+          </div>
         </label>
       </div>
     </div>
     
     <div class="section">
-      <h3 class="section-title">Long Break Interval</h3>
+      <h3 class="section-title">Session Workflow</h3>
+      <p class="section-description">Configure how your Pomodoro sessions flow together.</p>
       
       <div class="setting-group">
         <label class="setting-label">
-          <span>After every</span>
+          <span>Long break after every</span>
           <div class="time-input">
             <input 
               type="number" 
@@ -94,9 +130,32 @@
               max="10"
               class="time-field"
             />
-            <span class="time-unit">pomodoros</span>
+            <span class="time-unit">work sessions</span>
           </div>
         </label>
+      </div>
+      
+      <div class="session-progress" v-if="store.sessionCount > 0">
+        <div class="progress-info">
+          <h4>Session Progress</h4>
+          <div class="progress-stats">
+            <div class="stat">
+              <span class="stat-value">{{ store.sessionCount }}</span>
+              <span class="stat-label">Completed Sessions</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">{{ store.sessionProgress.remainingUntilLongBreak }}</span>
+              <span class="stat-label">Until Long Break</span>
+            </div>
+          </div>
+          <div class="next-break" :class="{ 'long-break': store.sessionProgress.isNextBreakLong }">
+            Next: {{ store.sessionProgress.isNextBreakLong ? 'Long Break' : 'Short Break' }}
+          </div>
+        </div>
+        
+        <button class="reset-session-btn" @click="store.resetSession()" type="button">
+          Reset Session Count
+        </button>
       </div>
     </div>
     
@@ -757,5 +816,119 @@ const displayModes = [
   .time-input {
     align-self: flex-end;
   }
+}
+
+/* Auto-chain and session workflow styles */
+.toggle-label.highlight {
+  background: rgba(139, 92, 246, 0.1);
+  padding: 12px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.feature-description {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin: 8px 0 0 56px;
+  line-height: 1.4;
+}
+
+.advanced-settings {
+  margin-top: 16px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.advanced-settings h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.auto-start-settings {
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--border-radius-sm);
+}
+
+.session-progress {
+  margin-top: 20px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.progress-info h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.progress-stats {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 12px;
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat-value {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.stat-label {
+  display: block;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+.next-break {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--border-radius-sm);
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.next-break.long-break {
+  background: rgba(139, 92, 246, 0.1);
+  color: rgba(139, 92, 246, 0.9);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.reset-session-btn {
+  width: 100%;
+  padding: 8px 16px;
+  border-radius: var(--border-radius-sm);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: rgba(239, 68, 68, 0.9);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reset-session-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: rgba(239, 68, 68, 1);
+  transform: translateY(-1px);
 }
 </style>

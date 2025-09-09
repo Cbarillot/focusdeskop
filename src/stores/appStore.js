@@ -9,6 +9,8 @@ export const useAppStore = defineStore('app', () => {
   const timeRemaining = ref(25 * 60) // in seconds
   const isRunning = ref(false)
   const cycle = ref(0)
+  const sessionCount = ref(0) // Track completed work sessions
+  const totalSessionsToday = ref(0) // Track daily session count
   let timerInterval = null
   
   // Timer settings
@@ -19,7 +21,9 @@ export const useAppStore = defineStore('app', () => {
   // Auto-start settings
   const autoStartBreaks = ref(false)
   const autoStartPomodoros = ref(false)
+  const autoChainEnabled = ref(false) // Master toggle for fully automatic sessions
   const longBreakInterval = ref(4) // After every 4 pomodoros
+  const autoStartDelay = ref(3) // Seconds delay before auto-starting next session
   
   // Audio notification settings
   const audioNotificationsEnabled = ref(true)
@@ -152,6 +156,20 @@ const themes = ref({
     }
   })
 
+  // Progress tracking
+  const sessionProgress = computed(() => {
+    const completedSessions = sessionCount.value
+    const nextLongBreak = Math.ceil((completedSessions + 1) / longBreakInterval.value) * longBreakInterval.value
+    const remainingUntilLongBreak = nextLongBreak - completedSessions
+    
+    return {
+      completedSessions,
+      remainingUntilLongBreak,
+      nextLongBreak,
+      isNextBreakLong: remainingUntilLongBreak === 1
+    }
+  })
+
   // Get current theme colors
   const currentThemeColors = computed(() => {
     return themes.value[currentTheme.value]?.colors || themes.value.home.colors
@@ -206,39 +224,60 @@ const themes = ref({
         timerInterval = null
       }
       
+      // Update session counts
+      if (timerMode.value === 'pomodoro') {
+        sessionCount.value++
+        totalSessionsToday.value++
+      }
+      
       // Play audio notification
       playTimerNotification()
       
-      // Auto-switch to next mode (simplified logic)
-      if (timerMode.value === 'pomodoro') {
-        cycle.value++
-        const nextMode = (cycle.value % longBreakInterval.value === 0) ? 'longBreak' : 'shortBreak'
-        
-        if (autoStartBreaks.value) {
-          switchMode(nextMode)
-          // Auto start the break timer
-          setTimeout(() => {
-            if (!isRunning.value) {
-              toggleTimer()
-            }
-          }, 100)
-        } else {
-          switchMode(nextMode)
-        }
+      // Auto-switch to next mode
+      handleTimerCompletion()
+    }
+  }
+  
+  // Handle timer completion and auto-chaining
+  function handleTimerCompletion() {
+    if (timerMode.value === 'pomodoro') {
+      // Work session completed
+      cycle.value++
+      const nextMode = (sessionCount.value % longBreakInterval.value === 0) ? 'longBreak' : 'shortBreak'
+      
+      if (autoStartBreaks.value || autoChainEnabled.value) {
+        switchMode(nextMode)
+        scheduleAutoStart()
       } else {
-        // Break is over, switch to pomodoro
-        if (autoStartPomodoros.value) {
-          switchMode('pomodoro')
-          // Auto start the pomodoro timer
-          setTimeout(() => {
-            if (!isRunning.value) {
-              toggleTimer()
-            }
-          }, 100)
-        } else {
-          switchMode('pomodoro')
-        }
+        switchMode(nextMode)
       }
+    } else {
+      // Break completed, switch to pomodoro
+      if (autoStartPomodoros.value || autoChainEnabled.value) {
+        switchMode('pomodoro')
+        scheduleAutoStart()
+      } else {
+        switchMode('pomodoro')
+      }
+    }
+  }
+  
+  // Schedule automatic start of next session
+  function scheduleAutoStart() {
+    if (autoStartDelay.value > 0) {
+      // Show countdown before auto-starting
+      setTimeout(() => {
+        if (!isRunning.value) {
+          toggleTimer()
+        }
+      }, autoStartDelay.value * 1000)
+    } else {
+      // Start immediately
+      setTimeout(() => {
+        if (!isRunning.value) {
+          toggleTimer()
+        }
+      }, 100)
     }
   }
   
@@ -290,6 +329,14 @@ const themes = ref({
       timerInterval = null
     }
     timeRemaining.value = currentModeTime.value
+  }
+  
+  function resetSession() {
+    resetTimer()
+    sessionCount.value = 0
+    cycle.value = 0
+    timerMode.value = 'pomodoro'
+    timeRemaining.value = pomodoroTime.value
   }
   
   function addFiveMinutes() {
@@ -739,6 +786,22 @@ const themes = ref({
     }
   }
   
+  function toggleAutoChain() {
+    autoChainEnabled.value = !autoChainEnabled.value
+    // When auto-chain is enabled, enable both auto-start options
+    if (autoChainEnabled.value) {
+      autoStartBreaks.value = true
+      autoStartPomodoros.value = true
+    }
+  }
+  
+  function setAutoStartDelay(seconds) {
+    const newDelay = parseInt(seconds)
+    if (newDelay >= 0 && newDelay <= 30) {
+      autoStartDelay.value = newDelay
+    }
+  }
+  
   // Audio notification settings
   function toggleAudioNotifications() {
     audioNotificationsEnabled.value = !audioNotificationsEnabled.value
@@ -811,12 +874,16 @@ const themes = ref({
     timeRemaining,
     isRunning,
     cycle,
+    sessionCount,
+    totalSessionsToday,
     pomodoroTime,
     shortBreakTime,
     longBreakTime,
     autoStartBreaks,
     autoStartPomodoros,
+    autoChainEnabled,
     longBreakInterval,
+    autoStartDelay,
     audioNotificationsEnabled,
     workEndSoundEnabled,
     breakEndSoundEnabled,
@@ -861,6 +928,7 @@ const themes = ref({
     displayTime,
     currentModeTime,
     currentThemeColors,
+    sessionProgress,
     incompleteTasks,
     urgentImportantTasks,
     importantNotUrgentTasks,
@@ -870,6 +938,7 @@ const themes = ref({
     // Actions
     toggleTimer,
     resetTimer,
+    resetSession,
     addFiveMinutes,
     switchMode,
     toggleSidebar,
@@ -904,7 +973,9 @@ const themes = ref({
     setTimerDisplayMode,
     toggleAutoStartBreaks,
     toggleAutoStartPomodoros,
+    toggleAutoChain,
     setLongBreakInterval,
+    setAutoStartDelay,
     toggleAudioNotifications,
     toggleWorkEndSound,
     toggleBreakEndSound,
