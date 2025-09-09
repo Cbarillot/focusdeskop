@@ -436,9 +436,17 @@ function createYouTubePlayer() {
   if (!window.YT || !window.YT.Player) return
   if (ytPlayer) return
   
+  // Wait for the DOM element to be available
+  const targetElementId = 'youtube-player'
+  const targetElement = document.getElementById(targetElementId)
+  if (!targetElement) {
+    console.warn('YouTube player target element not found')
+    return
+  }
+  
   const videoId = extractYouTubeId(store.selectedMusicSource?.url) || 'jfKfPfyJRdk'
   
-  ytPlayer = new window.YT.Player('youtube-player', {
+  ytPlayer = new window.YT.Player(targetElementId, {
     height: '100%',
     width: '100%',
     videoId: videoId,
@@ -477,14 +485,19 @@ function createYouTubePlayer() {
 
 function loadYouTubeAPI() {
   if (window.YT && window.YT.Player) {
-    createYouTubePlayer()
+    // Wait for next tick to ensure DOM is ready
+    nextTick(() => {
+      createYouTubePlayer()
+    })
     return
   }
   const tag = document.createElement('script')
   tag.src = 'https://www.youtube.com/iframe_api'
   document.body.appendChild(tag)
   window.onYouTubeIframeAPIReady = () => {
-    createYouTubePlayer()
+    nextTick(() => {
+      createYouTubePlayer()
+    })
   }
 }
 

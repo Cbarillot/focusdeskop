@@ -116,8 +116,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useAppStore } from '../stores/appStore'
-import { getAvailablePreviewSizes, detectDevice } from '../utils/deviceDetection'
+import { useAppStore } from '../../stores/appStore'
+import { getAvailablePreviewSizes, detectDevice } from '../../utils/deviceDetection'
 
 const store = useAppStore()
 
