@@ -433,58 +433,88 @@ function loadPlayerSettings() {
 
 // YouTube Player Functions
 function createYouTubePlayer() {
-  if (!window.YT || !window.YT.Player) return
-  if (ytPlayer) return
+  if (!window.YT || !window.YT.Player) {
+    console.warn('YouTube API not loaded yet')
+    return
+  }
+  if (ytPlayer) {
+    console.log('YouTube player already exists')
+    return
+  }
+  
+  // Wait for the DOM element to be available
+  const targetElementId = 'youtube-player'
+  const targetElement = document.getElementById(targetElementId)
+  if (!targetElement) {
+    console.warn('YouTube player target element not found, retrying...')
+    // Retry after a short delay
+    setTimeout(() => {
+      createYouTubePlayer()
+    }, 100)
+    return
+  }
   
   const videoId = extractYouTubeId(store.selectedMusicSource?.url) || 'jfKfPfyJRdk'
+  console.log('Creating YouTube player with video ID:', videoId)
   
-  ytPlayer = new window.YT.Player('youtube-player', {
-    height: '100%',
-    width: '100%',
-    videoId: videoId,
-    playerVars: { 
-      playsinline: 1, 
-      controls: 1, 
-      loop: 1, 
-      playlist: videoId,
-      enablejsapi: 1,
-      origin: window.location.origin
-    },
-    events: {
-      onReady: () => {
-        console.log('YouTube Player Ready')
-        window.ytPlayer = ytPlayer
-        ytReady.value = true
+  try {
+    ytPlayer = new window.YT.Player(targetElementId, {
+      height: '100%',
+      width: '100%',
+      videoId: videoId,
+      playerVars: { 
+        playsinline: 1, 
+        controls: 1, 
+        loop: 1, 
+        playlist: videoId,
+        enablejsapi: 1,
+        origin: window.location.origin
       },
-      onStateChange: (event) => {
-        const YTPS = window.YT.PlayerState
-        if (!YTPS) return
-        
-        if (event.data === YTPS.PLAYING) {
-          isPlaying.value = true
-          store.musicPlaying = true
-        } else if (event.data === YTPS.PAUSED || event.data === YTPS.ENDED) {
-          isPlaying.value = false
-          store.musicPlaying = false
+      events: {
+        onReady: () => {
+          console.log('YouTube Player Ready')
+          window.ytPlayer = ytPlayer
+          ytReady.value = true
+        },
+        onStateChange: (event) => {
+          const YTPS = window.YT.PlayerState
+          if (!YTPS) return
+          
+          if (event.data === YTPS.PLAYING) {
+            isPlaying.value = true
+            store.musicPlaying = true
+          } else if (event.data === YTPS.PAUSED || event.data === YTPS.ENDED) {
+            isPlaying.value = false
+            store.musicPlaying = false
+          }
+        },
+        onError: (error) => {
+          console.error('YouTube Player Error:', error)
+          ytReady.value = false
         }
-      },
-      onError: (error) => {
-        console.error('YouTube Player Error:', error)
       }
-    }
-  })
+    })
+  } catch (error) {
+    console.error('Error creating YouTube player:', error)
+    ytReady.value = false
+  }
 }
 
 function loadYouTubeAPI() {
   if (window.YT && window.YT.Player) {
-    createYouTubePlayer()
+    // Wait for next tick to ensure DOM is ready
+    nextTick(() => {
+      createYouTubePlayer()
+    })
     return
   }
   const tag = document.createElement('script')
   tag.src = 'https://www.youtube.com/iframe_api'
   document.body.appendChild(tag)
   window.onYouTubeIframeAPIReady = () => {
-    createYouTubePlayer()
+    nextTick(() => {
+      createYouTubePlayer()
+    })
   }
 }
 
@@ -678,9 +708,10 @@ watch(() => store.selectedMusicSource, (newSource) => {
       }
       ytPlayer = null
     }
+    // Wait a bit longer and ensure DOM is ready
     setTimeout(() => {
       loadYouTubeAPI()
-    }, 100)
+    }, 200)
   } else if (newSource && newSource.type === 'deezer') {
     // For Deezer, assume playing state (since we can't detect iframe playback)
     isPlaying.value = true

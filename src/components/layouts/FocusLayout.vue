@@ -30,6 +30,13 @@
           >
             Reset
           </button>
+          <button 
+            class="control-btn tertiary"
+            @click="store.addFiveMinutes()"
+            title="Ajouter 5 minutes au timer"
+          >
+            +5 min
+          </button>
         </div>
       </div>
 
@@ -180,6 +187,23 @@ function openTimerSettings() {
   background: rgba(255, 255, 255, 0.2);
   color: white;
   transform: translateY(-2px);
+}
+
+.control-btn.tertiary {
+  background: rgba(0, 191, 165, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 191, 165, 0.3);
+  color: rgba(0, 191, 165, 0.9);
+  font-size: 13px;
+  min-width: 80px;
+  padding: 12px 20px;
+}
+
+.control-btn.tertiary:hover {
+  background: rgba(0, 191, 165, 0.25);
+  color: rgba(0, 191, 165, 1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 191, 165, 0.3);
 }
 
 .session-info {

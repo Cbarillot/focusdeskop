@@ -57,6 +57,7 @@ import { useAppStore } from '../stores/appStore'
 import ThemeSettings from './panels/ThemeSettings.vue'
 import TimerSettings from './panels/TimerSettings.vue'
 import MusicSettings from './panels/MusicSettings.vue'
+import PreviewPanel from './panels/PreviewPanel.vue'
 import TodoPanel from './panels/TodoPanel.vue'
 
 // La gestion des couleurs a été déplacée dans ThemeSettings.vue
@@ -65,16 +66,28 @@ import TodoPanel from './panels/TodoPanel.vue'
 import ThemeIcon from './icons/ThemeIcon.vue'
 import TimerIcon from './icons/TimerIcon.vue'
 import MusicIcon from './icons/MusicIcon.vue'
+import PreviewIcon from './icons/PreviewIcon.vue'
 import TodoIcon from './icons/TodoIcon.vue'
 
 const store = useAppStore()
-const panelWidth = ref(500) // Largeur par défaut augmentée pour mieux afficher le contenu
+const panelWidth = ref(getInitialPanelWidth()) // Auto-size to 50% of screen width by default
 const isResizing = ref(false)
 const startX = ref(0)
 const startWidth = ref(500)
 
 const minWidth = 300
 const maxWidth = 800
+
+// Calculate initial panel width as 50% of screen width
+function getInitialPanelWidth() {
+  if (typeof window === 'undefined') return 500
+  
+  const screenWidth = window.innerWidth
+  const halfWidth = Math.floor(screenWidth * 0.5)
+  
+  // Ensure it's within min/max bounds
+  return Math.max(minWidth, Math.min(maxWidth, halfWidth))
+}
 
 function startResize(e) {
   isResizing.value = true
@@ -110,7 +123,11 @@ function stopResize() {
 onMounted(() => {
   const savedWidth = localStorage.getItem('panelWidth')
   if (savedWidth) {
+    // Use saved width if available
     panelWidth.value = parseInt(savedWidth, 10)
+  } else {
+    // First time opening: calculate 50% of screen width
+    panelWidth.value = getInitialPanelWidth()
   }
   
   // Sauvegarder la largeur quand elle change
@@ -143,6 +160,12 @@ const tabs = [
     title: 'Music Player'
   },
   {
+    key: 'preview',
+    label: 'Preview',
+    icon: PreviewIcon,
+    title: 'Screen Preview'
+  },
+  {
     key: 'todo',
     label: 'Tasks',
     icon: TodoIcon,
@@ -155,6 +178,7 @@ const activeComponent = computed(() => {
     case 'themes': return ThemeSettings
     case 'timer': return TimerSettings
     case 'music': return MusicSettings
+    case 'preview': return PreviewPanel
     case 'todo': return TodoPanel
     default: return ThemeSettings
   }
@@ -336,23 +360,170 @@ const activeTabTitle = computed(() => {
   flex-direction: column;
 }
 
-/* Responsive */
-@media (max-width: 480px) {
-  .panel-header {
-    padding: 20px;
+/* Responsive design enhancements */
+
+/* Small desktop screens (15" 1366x768 and similar) */
+@media (max-width: 1400px) and (max-height: 900px) {
+  .side-panel {
+    min-width: 280px;
+    max-width: 85%;
   }
+  
+  .panel-header {
+    padding: 16px 20px;
+  }
+  
+  .panel-header h2 {
+    font-size: 18px;
+  }
+  
+  .panel-title {
+    font-size: 1rem;
+    margin: 6px 0 10px 0;
+  }
+  
+  .nav-tab {
+    padding: 10px 14px;
+    font-size: 0.85rem;
+  }
+  
+  .panel-content {
+    padding: 16px;
+    gap: 16px;
+  }
+}
+
+/* Medium screens and narrow aspect ratios */
+@media (max-width: 1024px) {
+  .side-panel {
+    width: 380px;
+    min-width: 300px;
+    max-width: 90%;
+  }
+  
   .panel-nav {
     flex-basis: 80px;
     padding: 12px 8px;
   }
   
   .nav-tab {
-    padding: 8px 6px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    gap: 6px;
+  }
+  
+  .nav-tab span {
+    display: none; /* Hide text on smaller screens, show only icons */
+  }
+  
+  .panel-content {
+    padding: 14px;
+  }
+  
+  .panel-title {
+    font-size: 0.95rem;
+  }
+}
+
+/* Small screens and mobile landscape */
+@media (max-width: 768px) {
+  .side-panel {
+    width: 100vw;
+    max-width: 100%;
+    min-width: 100%;
+  }
+  
+  .panel-header {
+    padding: 14px 16px;
+  }
+  
+  .panel-header h2 {
+    font-size: 16px;
+  }
+  
+  .panel-title {
+    font-size: 0.9rem;
+    margin: 4px 0 8px 0;
+  }
+  
+  .panel-nav {
+    flex-basis: 70px;
+    padding: 10px 6px;
+  }
+  
+  .nav-tab {
+    padding: 6px 8px;
+    font-size: 0.75rem;
+  }
+  
+  .nav-tab span {
+    display: none; /* Icons only on mobile */
+  }
+  
+  .panel-content {
+    padding: 12px;
+    gap: 12px;
+  }
+}
+
+/* Very small screens (mobile portrait) */
+@media (max-width: 480px) {
+  .panel-header {
+    padding: 12px 14px;
+  }
+  
+  .panel-header h2 {
+    font-size: 15px;
+  }
+  
+  .panel-title {
+    font-size: 0.85rem;
+    letter-spacing: 0.03em;
+  }
+  
+  .nav-tab {
+    padding: 5px 6px;
     font-size: 11px;
   }
   
   .panel-content {
-    padding: 20px;
+    padding: 10px;
+    gap: 10px;
+  }
+  
+  .close-btn {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* High resolution screens */
+@media (min-width: 1600px) {
+  .side-panel {
+    width: 520px;
+    max-width: 35%;
+  }
+  
+  .panel-header {
+    padding: 28px;
+  }
+  
+  .panel-header h2 {
+    font-size: 22px;
+  }
+  
+  .panel-title {
+    font-size: 1.2rem;
+  }
+  
+  .nav-tab {
+    padding: 14px 18px;
+    font-size: 0.95rem;
+  }
+  
+  .panel-content {
+    padding: 24px;
+    gap: 24px;
   }
 }
 </style>

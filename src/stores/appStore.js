@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { loadAllMediaAssets } from '../utils/mediaLoader.js'
+import { getAudioNotification } from '../utils/audioNotification.js'
 
 export const useAppStore = defineStore('app', () => {
   // Timer state
@@ -8,6 +9,8 @@ export const useAppStore = defineStore('app', () => {
   const timeRemaining = ref(25 * 60) // in seconds
   const isRunning = ref(false)
   const cycle = ref(0)
+  const sessionCount = ref(0) // Track completed work sessions
+  const totalSessionsToday = ref(0) // Track daily session count
   let timerInterval = null
   
   // Timer settings
@@ -18,16 +21,32 @@ export const useAppStore = defineStore('app', () => {
   // Auto-start settings
   const autoStartBreaks = ref(false)
   const autoStartPomodoros = ref(false)
+  const autoChainEnabled = ref(false) // Master toggle for fully automatic sessions
   const longBreakInterval = ref(4) // After every 4 pomodoros
+  const autoStartDelay = ref(3) // Seconds delay before auto-starting next session
+  
+  // Audio notification settings
+  const audioNotificationsEnabled = ref(true)
+  const workEndSoundEnabled = ref(true)
+  const breakEndSoundEnabled = ref(true)
+  const workEndSound = ref('classic-bell') // Selected sound for work session end
+  const shortBreakEndSound = ref('gentle-chime') // Selected sound for short break end
+  const longBreakEndSound = ref('temple-gong') // Selected sound for long break end
+  const notificationVolume = ref(0.7) // Volume for notifications (0-1)
   
   // Timer display settings
   const timerDisplayMode = ref('focus') // focus, ambiance, home
   
   // UI state
   const sidebarOpen = ref(false)
-  const activeTab = ref('themes') // themes, clock, timer, stats, music, notepad, sounds, quotes, background, todo
+  const activeTab = ref('themes') // themes, clock, timer, stats, music, notepad, sounds, quotes, background, todo, preview
   const isFullscreen = ref(false) // Fullscreen mode state
   const mood = ref('focus') // home, ambience, focus - controls layout mode
+
+  // Preview system state
+  const previewOverlayVisible = ref(false) // Preview disabled by default, only enable when user activates it
+  const previewPreset = ref('desktop-15-landscape') // Default to desktop preview
+  const previewShade = ref(true) // Shade background outside preview frame
 
 // Theme & styling
 const currentTheme = ref('toto-forest') // home, ambiance, focus, toto-forest, etc.
@@ -137,6 +156,20 @@ const themes = ref({
     }
   })
 
+  // Progress tracking
+  const sessionProgress = computed(() => {
+    const completedSessions = sessionCount.value
+    const nextLongBreak = Math.ceil((completedSessions + 1) / longBreakInterval.value) * longBreakInterval.value
+    const remainingUntilLongBreak = nextLongBreak - completedSessions
+    
+    return {
+      completedSessions,
+      remainingUntilLongBreak,
+      nextLongBreak,
+      isNextBreakLong: remainingUntilLongBreak === 1
+    }
+  })
+
   // Get current theme colors
   const currentThemeColors = computed(() => {
     return themes.value[currentTheme.value]?.colors || themes.value.home.colors
@@ -191,36 +224,87 @@ const themes = ref({
         timerInterval = null
       }
       
-      // Auto-switch to next mode (simplified logic)
+      // Update session counts
       if (timerMode.value === 'pomodoro') {
-        cycle.value++
-        const nextMode = (cycle.value % longBreakInterval.value === 0) ? 'longBreak' : 'shortBreak'
-        
-        if (autoStartBreaks.value) {
-          switchMode(nextMode)
-          // Auto start the break timer
-          setTimeout(() => {
-            if (!isRunning.value) {
-              toggleTimer()
-            }
-          }, 100)
-        } else {
-          switchMode(nextMode)
-        }
-      } else {
-        // Break is over, switch to pomodoro
-        if (autoStartPomodoros.value) {
-          switchMode('pomodoro')
-          // Auto start the pomodoro timer
-          setTimeout(() => {
-            if (!isRunning.value) {
-              toggleTimer()
-            }
-          }, 100)
-        } else {
-          switchMode('pomodoro')
-        }
+        sessionCount.value++
+        totalSessionsToday.value++
       }
+      
+      // Play audio notification
+      playTimerNotification()
+      
+      // Auto-switch to next mode
+      handleTimerCompletion()
+    }
+  }
+  
+  // Handle timer completion and auto-chaining
+  function handleTimerCompletion() {
+    if (timerMode.value === 'pomodoro') {
+      // Work session completed
+      cycle.value++
+      const nextMode = (sessionCount.value % longBreakInterval.value === 0) ? 'longBreak' : 'shortBreak'
+      
+      if (autoStartBreaks.value || autoChainEnabled.value) {
+        switchMode(nextMode)
+        scheduleAutoStart()
+      } else {
+        switchMode(nextMode)
+      }
+    } else {
+      // Break completed, switch to pomodoro
+      if (autoStartPomodoros.value || autoChainEnabled.value) {
+        switchMode('pomodoro')
+        scheduleAutoStart()
+      } else {
+        switchMode('pomodoro')
+      }
+    }
+  }
+  
+  // Schedule automatic start of next session
+  function scheduleAutoStart() {
+    if (autoStartDelay.value > 0) {
+      // Show countdown before auto-starting
+      setTimeout(() => {
+        if (!isRunning.value) {
+          toggleTimer()
+        }
+      }, autoStartDelay.value * 1000)
+    } else {
+      // Start immediately
+      setTimeout(() => {
+        if (!isRunning.value) {
+          toggleTimer()
+        }
+      }, 100)
+    }
+  }
+  
+  // Audio notification function
+  async function playTimerNotification() {
+    if (!audioNotificationsEnabled.value) return
+    
+    try {
+      const audioNotification = getAudioNotification()
+      audioNotification.setVolume(notificationVolume.value)
+      
+      let soundToPlay = 'classic-bell' // default fallback
+      
+      if (timerMode.value === 'pomodoro' && workEndSoundEnabled.value) {
+        // Work session ended
+        soundToPlay = workEndSound.value
+      } else if (timerMode.value === 'shortBreak' && breakEndSoundEnabled.value) {
+        // Short break ended
+        soundToPlay = shortBreakEndSound.value
+      } else if (timerMode.value === 'longBreak' && breakEndSoundEnabled.value) {
+        // Long break ended
+        soundToPlay = longBreakEndSound.value
+      }
+      
+      await audioNotification.playSoundByName(soundToPlay)
+    } catch (error) {
+      console.warn('Error playing timer notification:', error)
     }
   }
   
@@ -245,6 +329,32 @@ const themes = ref({
       timerInterval = null
     }
     timeRemaining.value = currentModeTime.value
+  }
+  
+  function resetSession() {
+    resetTimer()
+    sessionCount.value = 0
+    cycle.value = 0
+    timerMode.value = 'pomodoro'
+    timeRemaining.value = pomodoroTime.value
+  }
+  
+  function addFiveMinutes() {
+    // Add 5 minutes (300 seconds) to current timer
+    timeRemaining.value += 300
+    
+    // Also update the base time for this mode so reset works correctly
+    switch (timerMode.value) {
+      case 'pomodoro':
+        pomodoroTime.value += 300
+        break
+      case 'shortBreak':
+        shortBreakTime.value += 300
+        break
+      case 'longBreak':
+        longBreakTime.value += 300
+        break
+    }
   }
   
   function switchMode(mode) {
@@ -602,6 +712,26 @@ const themes = ref({
     }
   }
   
+  // Preview system management
+  function togglePreviewOverlay() {
+    previewOverlayVisible.value = !previewOverlayVisible.value
+  }
+  
+  function setPreviewPreset(preset) {
+    previewPreset.value = preset
+    // If setting to 'off', hide the overlay
+    if (preset === 'off') {
+      previewOverlayVisible.value = false
+    } else {
+      // If setting a real preset, show the overlay
+      previewOverlayVisible.value = true
+    }
+  }
+  
+  function togglePreviewShade() {
+    previewShade.value = !previewShade.value
+  }
+  
   // Timer settings functions
   function updatePomodoroTime(minutes) {
     const newTime = parseInt(minutes) * 60
@@ -656,18 +786,111 @@ const themes = ref({
     }
   }
   
+  function toggleAutoChain() {
+    autoChainEnabled.value = !autoChainEnabled.value
+    // When auto-chain is enabled, enable both auto-start options
+    if (autoChainEnabled.value) {
+      autoStartBreaks.value = true
+      autoStartPomodoros.value = true
+    }
+  }
+  
+  function setAutoStartDelay(seconds) {
+    const newDelay = parseInt(seconds)
+    if (newDelay >= 0 && newDelay <= 30) {
+      autoStartDelay.value = newDelay
+    }
+  }
+  
+  // Audio notification settings
+  function toggleAudioNotifications() {
+    audioNotificationsEnabled.value = !audioNotificationsEnabled.value
+  }
+  
+  function toggleWorkEndSound() {
+    workEndSoundEnabled.value = !workEndSoundEnabled.value
+  }
+  
+  function toggleBreakEndSound() {
+    breakEndSoundEnabled.value = !breakEndSoundEnabled.value
+  }
+  
+  // Test audio notification
+  async function testAudioNotification() {
+    try {
+      const audioNotification = getAudioNotification()
+      audioNotification.setVolume(notificationVolume.value)
+      return await audioNotification.testSound()
+    } catch (error) {
+      console.warn('Error testing audio:', error)
+      return false
+    }
+  }
+  
+  // Preview a specific sound
+  async function previewSound(soundName) {
+    try {
+      const audioNotification = getAudioNotification()
+      audioNotification.setVolume(notificationVolume.value)
+      await audioNotification.playSoundByName(soundName)
+      return true
+    } catch (error) {
+      console.warn('Error previewing sound:', error)
+      return false
+    }
+  }
+  
+  // Set sound for specific timer events
+  function setWorkEndSound(soundName) {
+    workEndSound.value = soundName
+  }
+  
+  function setShortBreakEndSound(soundName) {
+    shortBreakEndSound.value = soundName
+  }
+  
+  function setLongBreakEndSound(soundName) {
+    longBreakEndSound.value = soundName
+  }
+  
+  function setNotificationVolume(volume) {
+    notificationVolume.value = Math.max(0, Math.min(1, volume))
+  }
+  
+  // Get available sounds for UI
+  function getAvailableSounds() {
+    try {
+      const audioNotification = getAudioNotification()
+      return audioNotification.getAvailableSounds()
+    } catch (error) {
+      console.warn('Error getting available sounds:', error)
+      return []
+    }
+  }
+  
   return {
     // State
     timerMode,
     timeRemaining,
     isRunning,
     cycle,
+    sessionCount,
+    totalSessionsToday,
     pomodoroTime,
     shortBreakTime,
     longBreakTime,
     autoStartBreaks,
     autoStartPomodoros,
+    autoChainEnabled,
     longBreakInterval,
+    autoStartDelay,
+    audioNotificationsEnabled,
+    workEndSoundEnabled,
+    breakEndSoundEnabled,
+    workEndSound,
+    shortBreakEndSound,
+    longBreakEndSound,
+    notificationVolume,
     timerDisplayMode,
     sidebarOpen,
     activeTab,
@@ -690,6 +913,10 @@ const themes = ref({
     selectedMusicSource,
     localAudioFile,
     soundscapes,
+    // Preview system state
+    previewOverlayVisible,
+    previewPreset,
+    previewShade,
     // Playlist data
     deezerPlaylists,
     youtubePlaylists,
@@ -701,6 +928,7 @@ const themes = ref({
     displayTime,
     currentModeTime,
     currentThemeColors,
+    sessionProgress,
     incompleteTasks,
     urgentImportantTasks,
     importantNotUrgentTasks,
@@ -710,6 +938,8 @@ const themes = ref({
     // Actions
     toggleTimer,
     resetTimer,
+    resetSession,
+    addFiveMinutes,
     switchMode,
     toggleSidebar,
     setActiveTab,
@@ -734,13 +964,28 @@ const themes = ref({
     playSelectedMusic,
     resetMusicSelection,
     toggleFullscreen,
+    togglePreviewOverlay,
+    setPreviewPreset,
+    togglePreviewShade,
     updatePomodoroTime,
     updateShortBreakTime,
     updateLongBreakTime,
     setTimerDisplayMode,
     toggleAutoStartBreaks,
     toggleAutoStartPomodoros,
+    toggleAutoChain,
     setLongBreakInterval,
+    setAutoStartDelay,
+    toggleAudioNotifications,
+    toggleWorkEndSound,
+    toggleBreakEndSound,
+    testAudioNotification,
+    previewSound,
+    setWorkEndSound,
+    setShortBreakEndSound,
+    setLongBreakEndSound,
+    setNotificationVolume,
+    getAvailableSounds,
     setMood: (newMood) => { mood.value = newMood },
     loadMediaAssets
   }
