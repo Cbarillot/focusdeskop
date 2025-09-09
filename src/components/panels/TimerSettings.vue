@@ -115,30 +115,120 @@
           <span class="toggle-slider"></span>
           <span>Enable audio notifications</span>
         </label>
-        
-        <label class="toggle-label" :class="{ disabled: !store.audioNotificationsEnabled }">
-          <input 
-            type="checkbox" 
-            class="toggle-input"
-            :checked="store.workEndSoundEnabled"
-            :disabled="!store.audioNotificationsEnabled"
-            @change="store.toggleWorkEndSound()"
-          />
-          <span class="toggle-slider"></span>
-          <span>Work session end bell (bright tone)</span>
+      </div>
+      
+      <!-- Volume Control -->
+      <div class="volume-control" v-if="store.audioNotificationsEnabled">
+        <label class="setting-label">
+          <span>Notification Volume</span>
+          <div class="volume-input">
+            <input 
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              :value="store.notificationVolume"
+              @input="store.setNotificationVolume(parseFloat($event.target.value))"
+              class="volume-slider"
+            />
+            <span class="volume-value">{{ Math.round(store.notificationVolume * 100) }}%</span>
+          </div>
         </label>
+      </div>
+      
+      <!-- Sound Selection -->
+      <div class="sound-selection" v-if="store.audioNotificationsEnabled">
+        <div class="sound-setting">
+          <label class="toggle-label">
+            <input 
+              type="checkbox" 
+              class="toggle-input"
+              :checked="store.workEndSoundEnabled"
+              @change="store.toggleWorkEndSound()"
+            />
+            <span class="toggle-slider"></span>
+            <span>Work session end sound</span>
+          </label>
+          <div class="sound-picker" v-if="store.workEndSoundEnabled">
+            <select 
+              :value="store.workEndSound"
+              @change="store.setWorkEndSound($event.target.value)"
+              class="sound-select"
+            >
+              <option v-for="sound in availableSounds" :key="sound.id" :value="sound.id">
+                {{ sound.name }}
+              </option>
+            </select>
+            <button 
+              class="preview-btn"
+              @click="previewSound(store.workEndSound)"
+              type="button"
+            >
+              🔊
+            </button>
+          </div>
+        </div>
         
-        <label class="toggle-label" :class="{ disabled: !store.audioNotificationsEnabled }">
-          <input 
-            type="checkbox" 
-            class="toggle-input"
-            :checked="store.breakEndSoundEnabled"
-            :disabled="!store.audioNotificationsEnabled"
-            @change="store.toggleBreakEndSound()"
-          />
-          <span class="toggle-slider"></span>
-          <span>Break end bell (gentle tone)</span>
-        </label>
+        <div class="sound-setting">
+          <label class="toggle-label">
+            <input 
+              type="checkbox" 
+              class="toggle-input"
+              :checked="store.breakEndSoundEnabled"
+              @change="store.toggleBreakEndSound()"
+            />
+            <span class="toggle-slider"></span>
+            <span>Short break end sound</span>
+          </label>
+          <div class="sound-picker" v-if="store.breakEndSoundEnabled">
+            <select 
+              :value="store.shortBreakEndSound"
+              @change="store.setShortBreakEndSound($event.target.value)"
+              class="sound-select"
+            >
+              <option v-for="sound in availableSounds" :key="sound.id" :value="sound.id">
+                {{ sound.name }}
+              </option>
+            </select>
+            <button 
+              class="preview-btn"
+              @click="previewSound(store.shortBreakEndSound)"
+              type="button"
+            >
+              🔊
+            </button>
+          </div>
+        </div>
+        
+        <div class="sound-setting">
+          <label class="toggle-label">
+            <input 
+              type="checkbox" 
+              class="toggle-input"
+              :checked="store.breakEndSoundEnabled"
+            />
+            <span class="toggle-slider disabled"></span>
+            <span>Long break end sound</span>
+          </label>
+          <div class="sound-picker" v-if="store.breakEndSoundEnabled">
+            <select 
+              :value="store.longBreakEndSound"
+              @change="store.setLongBreakEndSound($event.target.value)"
+              class="sound-select"
+            >
+              <option v-for="sound in availableSounds" :key="sound.id" :value="sound.id">
+                {{ sound.name }}
+              </option>
+            </select>
+            <button 
+              class="preview-btn"
+              @click="previewSound(store.longBreakEndSound)"
+              type="button"
+            >
+              🔊
+            </button>
+          </div>
+        </div>
       </div>
       
       <div class="test-audio">
@@ -191,11 +281,16 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAppStore } from '../../stores/appStore'
 
 const store = useAppStore()
 const audioTestResult = ref(null)
+const availableSounds = ref([])
+
+onMounted(() => {
+  availableSounds.value = store.getAvailableSounds()
+})
 
 async function testAudio() {
   audioTestResult.value = null
@@ -215,6 +310,14 @@ async function testAudio() {
     setTimeout(() => {
       audioTestResult.value = null
     }, 3000)
+  }
+}
+
+async function previewSound(soundName) {
+  try {
+    await store.previewSound(soundName)
+  } catch (error) {
+    console.warn('Preview sound error:', error)
   }
 }
 
@@ -488,6 +591,114 @@ const displayModes = [
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.2);
   cursor: not-allowed;
+}
+
+.volume-control {
+  margin: 16px 0;
+  padding: 16px 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.volume-input {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.volume-slider {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  border: 2px solid var(--color-bg-primary);
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  border: 2px solid var(--color-bg-primary);
+}
+
+.volume-value {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  min-width: 32px;
+  text-align: right;
+}
+
+.sound-selection {
+  margin: 16px 0;
+  padding: 16px 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.sound-setting {
+  margin-bottom: 20px;
+}
+
+.sound-setting:last-child {
+  margin-bottom: 0;
+}
+
+.sound-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  margin-left: 56px; /* Align with toggle text */
+}
+
+.sound-select {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-primary);
+  font-size: 14px;
+}
+
+.sound-select:focus {
+  border-color: var(--color-primary);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.preview-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.preview-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-text-primary);
+  transform: scale(1.05);
 }
 
 .test-audio {

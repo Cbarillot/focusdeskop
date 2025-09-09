@@ -25,6 +25,10 @@ export const useAppStore = defineStore('app', () => {
   const audioNotificationsEnabled = ref(true)
   const workEndSoundEnabled = ref(true)
   const breakEndSoundEnabled = ref(true)
+  const workEndSound = ref('classic-bell') // Selected sound for work session end
+  const shortBreakEndSound = ref('gentle-chime') // Selected sound for short break end
+  const longBreakEndSound = ref('temple-gong') // Selected sound for long break end
+  const notificationVolume = ref(0.7) // Volume for notifications (0-1)
   
   // Timer display settings
   const timerDisplayMode = ref('focus') // focus, ambiance, home
@@ -244,14 +248,22 @@ const themes = ref({
     
     try {
       const audioNotification = getAudioNotification()
+      audioNotification.setVolume(notificationVolume.value)
+      
+      let soundToPlay = 'classic-bell' // default fallback
       
       if (timerMode.value === 'pomodoro' && workEndSoundEnabled.value) {
         // Work session ended
-        await audioNotification.playWorkEndBell()
-      } else if ((timerMode.value === 'shortBreak' || timerMode.value === 'longBreak') && breakEndSoundEnabled.value) {
-        // Break ended
-        await audioNotification.playBreakEndBell()
+        soundToPlay = workEndSound.value
+      } else if (timerMode.value === 'shortBreak' && breakEndSoundEnabled.value) {
+        // Short break ended
+        soundToPlay = shortBreakEndSound.value
+      } else if (timerMode.value === 'longBreak' && breakEndSoundEnabled.value) {
+        // Long break ended
+        soundToPlay = longBreakEndSound.value
       }
+      
+      await audioNotification.playSoundByName(soundToPlay)
     } catch (error) {
       console.warn('Error playing timer notification:', error)
     }
@@ -744,10 +756,52 @@ const themes = ref({
   async function testAudioNotification() {
     try {
       const audioNotification = getAudioNotification()
+      audioNotification.setVolume(notificationVolume.value)
       return await audioNotification.testSound()
     } catch (error) {
       console.warn('Error testing audio:', error)
       return false
+    }
+  }
+  
+  // Preview a specific sound
+  async function previewSound(soundName) {
+    try {
+      const audioNotification = getAudioNotification()
+      audioNotification.setVolume(notificationVolume.value)
+      await audioNotification.playSoundByName(soundName)
+      return true
+    } catch (error) {
+      console.warn('Error previewing sound:', error)
+      return false
+    }
+  }
+  
+  // Set sound for specific timer events
+  function setWorkEndSound(soundName) {
+    workEndSound.value = soundName
+  }
+  
+  function setShortBreakEndSound(soundName) {
+    shortBreakEndSound.value = soundName
+  }
+  
+  function setLongBreakEndSound(soundName) {
+    longBreakEndSound.value = soundName
+  }
+  
+  function setNotificationVolume(volume) {
+    notificationVolume.value = Math.max(0, Math.min(1, volume))
+  }
+  
+  // Get available sounds for UI
+  function getAvailableSounds() {
+    try {
+      const audioNotification = getAudioNotification()
+      return audioNotification.getAvailableSounds()
+    } catch (error) {
+      console.warn('Error getting available sounds:', error)
+      return []
     }
   }
   
@@ -766,6 +820,10 @@ const themes = ref({
     audioNotificationsEnabled,
     workEndSoundEnabled,
     breakEndSoundEnabled,
+    workEndSound,
+    shortBreakEndSound,
+    longBreakEndSound,
+    notificationVolume,
     timerDisplayMode,
     sidebarOpen,
     activeTab,
@@ -851,6 +909,12 @@ const themes = ref({
     toggleWorkEndSound,
     toggleBreakEndSound,
     testAudioNotification,
+    previewSound,
+    setWorkEndSound,
+    setShortBreakEndSound,
+    setLongBreakEndSound,
+    setNotificationVolume,
+    getAvailableSounds,
     setMood: (newMood) => { mood.value = newMood },
     loadMediaAssets
   }
