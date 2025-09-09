@@ -91,14 +91,9 @@
           <button @click="loadYouTube" class="load-btn">Load</button>
         </div>
         
-        <div v-if="currentVideoId" class="youtube-player">
-          <iframe 
-            :src="`https://www.youtube.com/embed/${currentVideoId}?enablejsapi=1&autoplay=1&loop=1&playlist=${currentVideoId}`"
-            frameborder="0"
-            allowfullscreen
-            allow="autoplay; encrypted-media"
-            class="youtube-iframe"
-          ></iframe>
+        <div v-if="currentVideoId" class="youtube-preview">
+          <p class="preview-text">Selected: YouTube video loaded and ready to play on front page</p>
+          <button @click="currentVideoId = ''" class="clear-btn">Clear Selection</button>
         </div>
         
         <div class="youtube-presets">
@@ -634,23 +629,36 @@ function openDeezerPlaylist(url) {
   transform: translateY(0);
 }
 
-.youtube-player {
-  position: relative;
-  width: 100%;
-  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-  border-radius: 12px;
-  overflow: hidden;
-  background: #000;
-  margin-bottom: 20px;
+.youtube-preview {
+  padding: 16px;
+  background: rgba(0, 255, 0, 0.1);
+  border: 1px solid rgba(0, 255, 0, 0.3);
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 16px;
 }
 
-.youtube-iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
+.preview-text {
+  color: var(--color-text-primary);
+  font-size: 14px;
+  margin: 0 0 12px 0;
+}
+
+.clear-btn {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-btn:hover {
+  background: rgba(255, 0, 0, 0.1);
+  border-color: rgba(255, 0, 0, 0.3);
+  color: #ff6b6b;
 }
 
 /* Styles pour les boutons de préréglages */
@@ -798,44 +806,7 @@ function openDeezerPlaylist(url) {
   background: white;
 }
 
-/* Styles responsifs */
-@media (max-width: 768px) {
-  .playlist-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  }
-  
-  .preset-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
 
-@media (max-width: 480px) {
-  .music-settings {
-    padding: 1rem;
-  }
-  
-  .section {
-    padding: 1rem;
-  }
-  
-  .playlist-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  
-  .preset-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .input-group {
-    flex-direction: column;
-  }
-  
-  .load-btn {
-    width: 100%;
-    padding: 12px;
-  }
-}
 
 /* Animation de chargement pour les miniatures */
 @keyframes shimmer {
@@ -1049,18 +1020,298 @@ input:focus-visible,
   background: var(--color-text-primary);
 }
 
-/* Responsive */
-@media (max-width: 480px) {
-  .input-group {
-    flex-direction: column;
+/* Enhanced Responsive Design */
+
+/* Small desktop screens (15" and similar) */
+@media (max-width: 1400px) and (max-height: 900px) {
+  .music-settings {
+    padding: 1.2rem;
+  }
+  
+  .section {
+    padding: 1.2rem;
+    margin-bottom: 1.6rem;
+  }
+  
+  .section-title {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+  }
+  
+  .section-subtitle {
+    font-size: 0.9rem;
+    margin: 20px 0 12px 0;
+  }
+  
+  .playlist-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  
+  .playlist-name {
+    font-size: 0.85rem;
   }
   
   .preset-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 8px;
+  }
+  
+  .preset-btn {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+  
+  .youtube-input, .load-btn {
+    padding: 10px 14px;
+    font-size: 13px;
   }
   
   .toggle-label {
     font-size: 13px;
+  }
+}
+
+/* Medium screens */
+@media (max-width: 1024px) {
+  .music-settings {
+    padding: 1rem;
+  }
+  
+  .section {
+    padding: 1rem;
+    margin-bottom: 1.4rem;
+  }
+  
+  .section-title {
+    font-size: 1rem;
+  }
+  
+  .section-subtitle {
+    font-size: 0.85rem;
+    margin: 16px 0 10px 0;
+  }
+  
+  .playlist-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+  
+  .preset-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+}
+
+/* Tablet screens */
+@media (max-width: 768px) {
+  .music-settings {
+    padding: 0.8rem;
+  }
+  
+  .section {
+    padding: 0.8rem;
+    margin-bottom: 1.2rem;
+  }
+  
+  .section-title {
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+  }
+  
+  .section-subtitle {
+    font-size: 0.8rem;
+    margin: 14px 0 8px 0;
+  }
+  
+  .playlist-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+  }
+  
+  .playlist-name {
+    font-size: 0.8rem;
+  }
+  
+  .preset-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  
+  .preset-btn {
+    padding: 5px 8px;
+    font-size: 0.7rem;
+  }
+  
+  .input-group {
+    gap: 6px;
+  }
+  
+  .youtube-input, .load-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .file-btn {
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+  
+  .toggle-label {
+    font-size: 12px;
+    gap: 8px;
+  }
+  
+  .toggle-slider {
+    width: 38px;
+    height: 20px;
+  }
+  
+  .toggle-slider::before {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .toggle-input:checked + .toggle-slider::before {
+    transform: translateX(18px);
+  }
+}
+
+/* Mobile screens */
+@media (max-width: 480px) {
+  .music-settings {
+    padding: 0.6rem;
+  }
+  
+  .section {
+    padding: 0.6rem;
+    margin-bottom: 1rem;
+  }
+  
+  .section-title {
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+  
+  .section-subtitle {
+    font-size: 0.75rem;
+    margin: 12px 0 6px 0;
+  }
+  
+  .playlist-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  
+  .playlist-name {
+    font-size: 0.75rem;
+  }
+  
+  .preset-grid {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  
+  .preset-btn {
+    padding: 4px 6px;
+    font-size: 0.65rem;
+  }
+  
+  .input-group {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .youtube-input, .load-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+  
+  .load-btn {
+    width: 100%;
+  }
+  
+  .file-btn {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+  
+  .file-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .toggle-label {
+    font-size: 11px;
+    gap: 6px;
+  }
+  
+  .toggle-slider {
+    width: 34px;
+    height: 18px;
+  }
+  
+  .toggle-slider::before {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .toggle-input:checked + .toggle-slider::before {
+    transform: translateX(16px);
+  }
+}
+
+/* High resolution screens */
+@media (min-width: 1600px) {
+  .music-settings {
+    padding: 2rem;
+  }
+  
+  .section {
+    padding: 2rem;
+    margin-bottom: 2.5rem;
+  }
+  
+  .section-title {
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+  }
+  
+  .section-subtitle {
+    font-size: 1.1rem;
+    margin: 28px 0 20px 0;
+  }
+  
+  .playlist-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+  }
+  
+  .playlist-name {
+    font-size: 1rem;
+  }
+  
+  .preset-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+  }
+  
+  .preset-btn {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+  
+  .youtube-input, .load-btn {
+    padding: 14px 18px;
+    font-size: 15px;
+  }
+  
+  .file-btn {
+    padding: 18px 24px;
+    font-size: 16px;
+  }
+  
+  .toggle-label {
+    font-size: 15px;
   }
 }
 </style>

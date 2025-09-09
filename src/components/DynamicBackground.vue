@@ -56,11 +56,7 @@
       :style="getAnimatedGradientStyle()"
     ></div>
 
-    <!-- Overlay Layer -->
-    <div
-      class="overlay-layer"
-      :style="overlayStyle"
-    ></div>
+
   </div>
 </template>
 
@@ -237,9 +233,7 @@ watch(
   { deep: false }
 )
 
-const overlayStyle = computed(() => ({
-  backgroundColor: `rgba(0, 0, 0, ${store.overlayOpacity})`
-}))
+
 </script>
 
 <style scoped>
@@ -307,15 +301,7 @@ const overlayStyle = computed(() => ({
   }
 }
 
-.overlay-layer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  transition: background-color var(--transition-normal);
-  backdrop-filter: blur(1px);
-}
+
 
 @keyframes gradientShift {
   0%, 100% {
