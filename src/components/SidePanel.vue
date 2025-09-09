@@ -70,13 +70,24 @@ import PreviewIcon from './icons/PreviewIcon.vue'
 import TodoIcon from './icons/TodoIcon.vue'
 
 const store = useAppStore()
-const panelWidth = ref(500) // Largeur par défaut augmentée pour mieux afficher le contenu
+const panelWidth = ref(getInitialPanelWidth()) // Auto-size to 50% of screen width by default
 const isResizing = ref(false)
 const startX = ref(0)
 const startWidth = ref(500)
 
 const minWidth = 300
 const maxWidth = 800
+
+// Calculate initial panel width as 50% of screen width
+function getInitialPanelWidth() {
+  if (typeof window === 'undefined') return 500
+  
+  const screenWidth = window.innerWidth
+  const halfWidth = Math.floor(screenWidth * 0.5)
+  
+  // Ensure it's within min/max bounds
+  return Math.max(minWidth, Math.min(maxWidth, halfWidth))
+}
 
 function startResize(e) {
   isResizing.value = true
@@ -112,7 +123,11 @@ function stopResize() {
 onMounted(() => {
   const savedWidth = localStorage.getItem('panelWidth')
   if (savedWidth) {
+    // Use saved width if available
     panelWidth.value = parseInt(savedWidth, 10)
+  } else {
+    // First time opening: calculate 50% of screen width
+    panelWidth.value = getInitialPanelWidth()
   }
   
   // Sauvegarder la largeur quand elle change

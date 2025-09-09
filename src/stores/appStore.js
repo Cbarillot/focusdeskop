@@ -36,7 +36,7 @@ export const useAppStore = defineStore('app', () => {
   const mood = ref('focus') // home, ambience, focus - controls layout mode
 
   // Preview system state
-  const previewOverlayVisible = ref(true) // Show preview on app opening
+  const previewOverlayVisible = ref(false) // Preview disabled by default, only enable when user activates it
   const previewPreset = ref('desktop-15-landscape') // Default to desktop preview
   const previewShade = ref(true) // Shade background outside preview frame
 

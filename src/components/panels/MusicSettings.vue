@@ -284,17 +284,30 @@ const handleImageError = (event) => {
 
 function loadYouTube() {
   if (youtubeUrl.value) {
-    // Extraire l'ID de la vidéo ou utiliser comme terme de recherche
+    // Extract video ID or use as search term
     const videoId = extractYouTubeId(youtubeUrl.value)
     if (videoId) {
-      // Mettre à jour le store avec la nouvelle URL YouTube
-      store.setMusicUrl(`https://www.youtube.com/watch?v=${videoId}`)
-      currentVideoId.value = videoId
-      store.currentTrack = youtubeUrl.value
-      store.musicPlaying = true
+      // Create the source object for the new workflow
+      const source = {
+        type: 'youtube',
+        url: youtubeUrl.value,
+        title: youtubeUrl.value,
+        platform: 'youtube'
+      }
+      
+      // Send to the front page player via the store
+      store.playSelectedMusic(source)
+      
+      // Close the sidebar to show the front page player
+      if (store.sidebarOpen) {
+        store.toggleSidebar()
+      }
+      
+      // Clear the current video ID display in settings
+      currentVideoId.value = ''
     } else {
-      // Par simplicité, utiliser le premier préréglage si l'URL n'est pas valide
-      currentVideoId.value = youtubePresets[0].id
+      // Use the first preset if the URL is not valid
+      loadPreset(youtubePresets[0].id)
     }
   }
 }

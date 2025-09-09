@@ -79,7 +79,7 @@ const currentLayout = computed(() => {
 })
 
 function handleDeviceSelected(deviceType) {
-  // Set optimal preview size based on device type
+  // Set optimal preview size based on device type but don't auto-enable preview
   const device = detectDevice()
   const optimalSize = getOptimalPreviewSize({ ...device, type: deviceType })
   
@@ -91,6 +91,7 @@ function handleDeviceSelected(deviceType) {
   
   const presetId = presets[deviceType] || 'desktop-15-landscape'
   store.setPreviewPreset(presetId)
+  // Note: Preview remains disabled until user manually enables it in settings
 }
 
 function handleDeviceChoiceDismissed() {
@@ -106,19 +107,20 @@ onMounted(() => {
     location.reload() // Simple way to retrigger the modal
   })
   
-  // Auto-detect and set initial preview if no choice was made
+  // Auto-detect and set initial preview preset if no choice was made, but don't enable preview
   if (!localStorage.getItem('device-choice-made')) {
     const device = detectDevice()
     const optimalSize = getOptimalPreviewSize(device)
     
-    // Set default preview based on detected device
+    // Set default preview based on detected device but keep preview disabled
     const presets = {
       'desktop': 'desktop-15-landscape',
       'mobile': device.orientation === 'portrait' ? 'mobile-6-portrait' : 'mobile-6-landscape'
     }
     
     const presetId = presets[device.type] || 'desktop-15-landscape'
-    store.setPreviewPreset(presetId)
+    // Only set the preset, don't enable the preview
+    store.previewPreset = presetId
   }
 })
 
