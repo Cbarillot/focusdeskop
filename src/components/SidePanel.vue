@@ -57,6 +57,7 @@ import { useAppStore } from '../stores/appStore'
 import ThemeSettings from './panels/ThemeSettings.vue'
 import TimerSettings from './panels/TimerSettings.vue'
 import MusicSettings from './panels/MusicSettings.vue'
+import PreviewPanel from './panels/PreviewPanel.vue'
 import TodoPanel from './panels/TodoPanel.vue'
 
 // La gestion des couleurs a été déplacée dans ThemeSettings.vue
@@ -65,6 +66,7 @@ import TodoPanel from './panels/TodoPanel.vue'
 import ThemeIcon from './icons/ThemeIcon.vue'
 import TimerIcon from './icons/TimerIcon.vue'
 import MusicIcon from './icons/MusicIcon.vue'
+import PreviewIcon from './icons/PreviewIcon.vue'
 import TodoIcon from './icons/TodoIcon.vue'
 
 const store = useAppStore()
@@ -143,6 +145,12 @@ const tabs = [
     title: 'Music Player'
   },
   {
+    key: 'preview',
+    label: 'Preview',
+    icon: PreviewIcon,
+    title: 'Screen Preview'
+  },
+  {
     key: 'todo',
     label: 'Tasks',
     icon: TodoIcon,
@@ -155,6 +163,7 @@ const activeComponent = computed(() => {
     case 'themes': return ThemeSettings
     case 'timer': return TimerSettings
     case 'music': return MusicSettings
+    case 'preview': return PreviewPanel
     case 'todo': return TodoPanel
     default: return ThemeSettings
   }

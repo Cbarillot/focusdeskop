@@ -25,9 +25,14 @@ export const useAppStore = defineStore('app', () => {
   
   // UI state
   const sidebarOpen = ref(false)
-  const activeTab = ref('themes') // themes, clock, timer, stats, music, notepad, sounds, quotes, background, todo
+  const activeTab = ref('themes') // themes, clock, timer, stats, music, notepad, sounds, quotes, background, todo, preview
   const isFullscreen = ref(false) // Fullscreen mode state
   const mood = ref('focus') // home, ambience, focus - controls layout mode
+
+  // Preview system state
+  const previewOverlayVisible = ref(true) // Show preview on app opening
+  const previewPreset = ref('desktop-15-landscape') // Default to desktop preview
+  const previewShade = ref(true) // Shade background outside preview frame
 
 // Theme & styling
 const currentTheme = ref('toto-forest') // home, ambiance, focus, toto-forest, etc.
@@ -602,6 +607,26 @@ const themes = ref({
     }
   }
   
+  // Preview system management
+  function togglePreviewOverlay() {
+    previewOverlayVisible.value = !previewOverlayVisible.value
+  }
+  
+  function setPreviewPreset(preset) {
+    previewPreset.value = preset
+    // If setting to 'off', hide the overlay
+    if (preset === 'off') {
+      previewOverlayVisible.value = false
+    } else {
+      // If setting a real preset, show the overlay
+      previewOverlayVisible.value = true
+    }
+  }
+  
+  function togglePreviewShade() {
+    previewShade.value = !previewShade.value
+  }
+  
   // Timer settings functions
   function updatePomodoroTime(minutes) {
     const newTime = parseInt(minutes) * 60
@@ -690,6 +715,10 @@ const themes = ref({
     selectedMusicSource,
     localAudioFile,
     soundscapes,
+    // Preview system state
+    previewOverlayVisible,
+    previewPreset,
+    previewShade,
     // Playlist data
     deezerPlaylists,
     youtubePlaylists,
@@ -734,6 +763,9 @@ const themes = ref({
     playSelectedMusic,
     resetMusicSelection,
     toggleFullscreen,
+    togglePreviewOverlay,
+    setPreviewPreset,
+    togglePreviewShade,
     updatePomodoroTime,
     updateShortBreakTime,
     updateLongBreakTime,
